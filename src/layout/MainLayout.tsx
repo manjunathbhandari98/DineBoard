@@ -1,5 +1,10 @@
+import { BrowserRouter } from "react-router-dom";
+import Home from "../pages/Home";
+
 const MainLayout = () => {
- return (<div>Main Layout</div>) 
+ return (
+    <Home/>
+ ) 
 };
 
 export default MainLayout;

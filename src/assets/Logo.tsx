@@ -1,56 +1,49 @@
-// src/components/Logo.tsx
 import React from "react";
 
 const Logo = () => {
   return (
-    <div className="flex items-center space-x-3 group cursor-pointer">
-      {" "}
-      {/* Added group and cursor-pointer for potential hover effects */}
-      {/* Icon Section (Slightly Enhanced Plate/Bowl) */}
+    <div className="flex items-center space-x-3">
+      {/* Icon */}
       <svg
-        className="w-9 h-9 text-amber-600 group-hover:text-amber-700 transition-colors duration-200" // Slightly larger, warmer color, hover effect
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
+        viewBox="0 0 48 48"
+        className="w-10 h-10"
         fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5" // Slightly thinner stroke for refinement
-        strokeLinecap="round"
-        strokeLinejoin="round"
       >
-        {/* Outer rim of the plate/bowl */}
         <circle
-          cx="12"
-          cy="12"
-          r="10"
-          className="stroke-current opacity-80"
-        />
-        {/* Inner base circle */}
-        <circle
-          cx="12"
-          cy="12"
-          r="6"
-          className="stroke-current opacity-50"
-        />
-        {/* Subtle representation of perhaps steam or a simple garnish */}
-        <path
-          d="M12 8 Q 13 6, 14 8"
-          className="stroke-current opacity-70"
+          cx="24"
+          cy="24"
+          r="4"
+          fill="#2c3e70"
         />
         <path
-          d="M10 9 Q 11 7, 12 9"
-          className="stroke-current opacity-60"
+          d="M24 10a14 14 0 0 1 0 28"
+          stroke="#2c3e70"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M24 6a18 18 0 0 1 0 36"
+          stroke="#2c3e70"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M24 14a10 10 0 0 1 0 20"
+          stroke="#2c3e70"
+          strokeWidth="2"
+          strokeLinecap="round"
         />
       </svg>
-      {/* DineBoard Text Section */}
+
+      {/* Text */}
       <span
-        // Apply the custom font class here (e.g., font-poppins)
-        // Make sure 'Poppins' is imported in your project (see notes below)
-        className="font-poppins text-3xl font-semibold text-gray-800 group-hover:text-gray-900 tracking-tight transition-colors duration-200"
+        className="text-[28px] font-normal text-black"
+        style={{
+          fontFamily: "'Yeseva One', serif",
+        }}
       >
-        <span className="font-bold text-amber-700">
-          Dine
-        </span>
-        Board
+        Dineboard
       </span>
     </div>
   );
