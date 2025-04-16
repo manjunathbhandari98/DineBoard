@@ -1,34 +1,92 @@
 import { useState } from "react";
-import Logo from "../assets/Logo";
 import NavLinks from "./NavLinks";
 import Sidebar from "./Sidebar";
-import { Link } from "react-router-dom";
-import { Button } from "@mantine/core";
-import { IconLanguage, IconMenuDeep } from "@tabler/icons-react"; // Hamburger Icon
+import {
+  Link,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
+import { Button, Menu } from "@mantine/core";
+import {
+  IconCircleDottedLetterH,
+  IconLogout,
+  IconMenuDeep,
+  IconSettings,
+} from "@tabler/icons-react"; // Hamburger Icon
+import ProfileMenu from "./ProfileMenu";
 
 const Header = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] =
+    useState(true); // You can replace this with actual auth state
+  const [sidebarOpen, setSidebarOpen] =
+    useState(false);
 
   return (
     <header className="flex items-center justify-between p-4 bg-white shadow-md relative z-50">
-      <img src="/logo.png" alt="" width={200}/>
+      {/* Logo and Home Link */}
+      <Link to="/">
+        <img
+          src="/logo.png"
+          alt="Logo"
+          width={200}
+        />
+      </Link>
 
       {/* Desktop Nav */}
-      <NavLinks isLoggedIn={isLoggedIn} />
+      <div className="hidden md:flex items-center space-x-8">
+        <NavLinks isLoggedIn={isLoggedIn} />
+        {isLoggedIn && (
+          <Menu withArrow>
+            <Menu.Target>
+              <ProfileMenu
+                image="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png"
+                name="Harriette Spoonlicker"
+              />
+            </Menu.Target>
+            <Menu.Dropdown w={150}>
+              <Menu.Item
+                onClick={() =>
+                  navigate("/hotel-profile")
+                }
+                leftSection={
+                  <IconCircleDottedLetterH />
+                }
+              >
+                Profile
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconSettings />}
+                onClick={() =>
+                  navigate("/settings")
+                }
+              >
+                Settings
+              </Menu.Item>
+              <Menu.Divider />
+              <Menu.Item
+                leftSection={<IconLogout />}
+              >
+                Logout
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        )}
 
-
-      {/* Desktop Login/Register */}
-      {!isLoggedIn && (
-        <div className="hidden md:flex space-x-4">
-          <Link to="/login">
-            <Button radius="xl">Login</Button>
-          </Link>
-          <Link to="/register">
-            <Button radius="xl">Register</Button>
-          </Link>
-        </div>
-      )}
+        {/* Desktop Login/Register */}
+        {!isLoggedIn && (
+          <div className="space-x-4">
+            <Link to="/auth?mode=login">
+              <Button radius="xl">Login</Button>
+            </Link>
+            <Link to="/auth?mode=register">
+              <Button radius="xl">
+                Register
+              </Button>
+            </Link>
+          </div>
+        )}
+      </div>
 
       {/* Mobile Menu Icon */}
       <button

@@ -1,9 +1,9 @@
-import { BrowserRouter } from "react-router-dom";
-import Home from "../pages/Home";
+
+import AppRoutes from "../routes/AppRoutes";
 
 const MainLayout = () => {
  return (
-    <Home/>
+    <AppRoutes/>
  ) 
 };
 
