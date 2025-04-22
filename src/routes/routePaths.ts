@@ -13,6 +13,7 @@ const RoutePaths = {
   HOTELSETTINGS: "/hotel-settings",
   HOTELPROFILE: "/hotel-profile",
   SETTINGS: "/settings",
+  PREVIEWMENU: "/preview",
 };
 
 export default RoutePaths;

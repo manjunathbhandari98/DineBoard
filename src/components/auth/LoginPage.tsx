@@ -1,72 +1,146 @@
-import { useState } from "react";
-import { Button, TextInput } from "@mantine/core";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+
+import {
+  getProfileInfo,
+  loginUser,
+} from "../../service/userService"; // Keep your service import
+import {
+  setProfile,
+  setUser,
+} from "../../slice/userSlice"; // Keep your Redux slice import
+
+import Button from "../ui/Button";
+import {
+  PasswordInput,
+  TextInput,
+} from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { parseJwt } from "../../service/auth";
+import { setToken } from "../../service/localStorageService";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate(); // Use this for navigation after login
+  const [
+    isPasswordVisible,
+    setIsPasswordVisible,
+  ] = useState(false); // Replaces useDisclosure
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
+  };
+
+  const handleLogin = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
-    // Add your login logic here, e.g., API call for login
-    notifications.show({
-      title:'Login Successfull',
-      message:'Welcome back!',
-      color:'green'
-    })
+    // Consider adding basic client-side validation here if needed
 
-    // If login successful, redirect user
-    navigate("/dashboard"); // Redirect to the dashboard (or any other page)
+    try {
+      const userData = {
+        email: email,
+        password: password,
+      };
+      const response = await loginUser(userData);
+
+      const token = response;
+      dispatch(setUser(token));
+      const profile = await getProfileInfo();
+      dispatch(setProfile(profile));
+
+      // --- Notification ---
+
+      notifications.show({
+        title: "Login Successful",
+        message: "Welcome Back",
+        color: "green",
+      });
+
+      navigate("/dashboard"); // Redirect to the dashboard
+    } catch (error: any) {
+      notifications.show({
+        title: "Login Failed",
+        // Try to display a more specific error message if available
+        message:
+          error?.response?.data?.message ||
+          "Oops! Login Failed",
+        color: "red",
+      });
+    }
   };
 
   return (
-    <form onSubmit={handleLogin}>
-      <div className="mb-4">
+    <>
+      <form
+        onSubmit={handleLogin}
+        className="space-y-6"
+      >
+        {" "}
+        {/* Add spacing between elements */}
+        {/* Email Input */}
         <TextInput
-          label="Email Address"
-          placeholder="Enter your email"
+          label="Email"
+          id="email"
+          name="email"
           type="email"
+          placeholder="Enter your email"
           value={email}
           onChange={(e) =>
             setEmail(e.target.value)
           }
           required
         />
-      </div>
-      <div className="mb-6">
-        <TextInput
+        {/* Password Input */}
+        <PasswordInput
+          id="password"
           label="Password"
-          placeholder="Enter your password"
-          type="password"
+          name="password"
           value={password}
           onChange={(e) =>
             setPassword(e.target.value)
           }
+          visible={isPasswordVisible}
+          onVisibilityChange={
+            togglePasswordVisibility
+          }
+          placeholder="Enter your password"
           required
         />
-      </div>
-      <Button
-        type="submit"
-        fullWidth
-        onClick={handleLogin}
-      >
-        Login
-      </Button>
-
-      {/* Forgot Password Link */}
-      <div className="mt-4 text-center">
-        <button  
-          className="text-blue-500 cursor-pointer"
-          onClick={() =>
-            navigate("/auth?mode=forgot-password")
-          } // Navigate to forgot-password page
-        >
-          Forgot Password?
-        </button>
-      </div>
-    </form>
+        {/* Submit Button */}
+        <div>
+          {" "}
+          {/* Optional div wrapper for spacing/layout */}
+          <Button
+            type="submit"
+            size="md"
+            variant="filled"
+            fullWidth
+          >
+            Login
+          </Button>
+        </div>
+        {/* Forgot Password Link */}
+        <div className="text-center">
+          {" "}
+          {/* Removed mt-4 as form now has space-y-6 */}
+          <button
+            type="button" // Important: type="button" to prevent form submission
+            className="text-sm font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer focus:outline-none"
+            onClick={() =>
+              navigate(
+                "/auth?mode=forgot-password"
+              )
+            } // Navigate to forgot-password page
+          >
+            Forgot Password?
+          </button>
+        </div>
+      </form>
+    </>
   );
 };
 

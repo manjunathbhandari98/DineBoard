@@ -6,7 +6,6 @@ import {
   Select,
   Input,
   Switch,
-  Button,
   Paper,
   Group,
 } from "@mantine/core";
@@ -16,6 +15,7 @@ import {
   QRCodeSVG,
 } from "qrcode.react";
 import { toPng } from "html-to-image";
+import Button from "../components/ui/Button";
 
 const menus = [
   { value: "menu1", label: "Main Course Menu" },

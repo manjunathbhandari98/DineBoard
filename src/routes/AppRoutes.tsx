@@ -1,10 +1,11 @@
 import { Route, Routes } from "react-router-dom";
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import RoutePaths from "./routePaths";
 import HotelMenuPreview from "../components/customer/HotelMenuPreview";
 import HotelSettings from "../components/HotelSettings";
 import HotelProfile from "../pages/HotelProfile";
 import SettingsPage from "../pages/Settings";
+import { Loader } from "@mantine/core"; // Custom loader is fine here
 
 // Lazy loading of pages
 const HomePage = lazy(
@@ -28,7 +29,6 @@ const AuthPage = lazy(
 const ManageOrders = lazy(
   () => import("../pages/ManageOrders")
 );
-
 const Dashboard = lazy(
   () => import("../pages/DashBoard")
 );
@@ -38,65 +38,75 @@ const HotelMenu = lazy(
 
 const AppRoutes = () => {
   return (
-    <Routes>
-      <Route
-        path={RoutePaths.HOME}
-        element={<HomePage />}
-      />
-      <Route
-        path={RoutePaths.PRICING}
-        element={<PricingPage />}
-      />
-      <Route
-        path={RoutePaths.SUPPORT}
-        element={<SupportPage />}
-      />
-      <Route
-        path={RoutePaths.ABOUT}
-        element={<AboutPage />}
-      />
-      <Route
-        path={RoutePaths.LOGIN}
-        element={<AuthPage />}
-      />
-      <Route
-        path={RoutePaths.REGISTER}
-        element={<AuthPage />}
-      />
-
-      <Route
-        path={RoutePaths.DASHBOARD}
-        element={<Dashboard />}
-      />
-      <Route
-        path={RoutePaths.MENUS}
-        element={<HotelMenu />}
-      />
-      <Route
-        path={RoutePaths.QRCODES}
-        element={<QRCodes />}
-      />
-      <Route
-        path={RoutePaths.ORDERS}
-        element={<ManageOrders />}
-      />
-      <Route
-        path={RoutePaths.CUSTOMERMENU}
-        element={<HotelMenuPreview />}
-      />
-      <Route
-        path={RoutePaths.HOTELSETTINGS}
-        element={<HotelSettings />}
-      />
-      <Route
-        path={RoutePaths.HOTELPROFILE}
-        element={<HotelProfile />}
-      />
-      <Route
-        path={RoutePaths.SETTINGS}
-        element={<SettingsPage />}
-      />
-    </Routes>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader
+            size="lg"
+            variant="dots"
+          />
+        </div>
+      }
+    >
+      <Routes>
+        <Route
+          path={RoutePaths.HOME}
+          element={<HomePage />}
+        />
+        <Route
+          path={RoutePaths.PRICING}
+          element={<PricingPage />}
+        />
+        <Route
+          path={RoutePaths.SUPPORT}
+          element={<SupportPage />}
+        />
+        <Route
+          path={RoutePaths.ABOUT}
+          element={<AboutPage />}
+        />
+        <Route
+          path={RoutePaths.LOGIN}
+          element={<AuthPage />}
+        />
+        <Route
+          path={RoutePaths.REGISTER}
+          element={<AuthPage />}
+        />
+        <Route
+          path={RoutePaths.DASHBOARD}
+          element={<Dashboard />}
+        />
+        <Route
+          path={RoutePaths.MENUS}
+          element={<HotelMenu />}
+        />
+        <Route
+          path={RoutePaths.QRCODES}
+          element={<QRCodes />}
+        />
+        <Route
+          path={RoutePaths.ORDERS}
+          element={<ManageOrders />}
+        />
+        <Route
+          path={RoutePaths.CUSTOMERMENU}
+          element={<HotelMenuPreview />}
+        />
+        <Route
+          path={RoutePaths.HOTELSETTINGS}
+          element={<HotelSettings />}
+        />
+        <Route
+          path={RoutePaths.HOTELPROFILE}
+          element={<HotelProfile />}
+        />
+        <Route
+          path={RoutePaths.SETTINGS}
+          element={<SettingsPage />}
+        />
+      </Routes>
+    </Suspense>
   );
 };
 

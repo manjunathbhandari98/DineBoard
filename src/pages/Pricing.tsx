@@ -1,49 +1,22 @@
-import { Button, Card } from "@mantine/core";
+import { Card } from "@mantine/core";
+import Button from "../components/ui/Button";
+import { useEffect, useState } from "react";
+import { getAllPlans } from "../service/pricingService";
 
 const Pricing = () => {
-  const plans = [
-    {
-      name: "Starter",
-      price: "₹499/month",
-      description:
-        "Perfect for small restaurants or cafes just getting started.",
-      features: [
-        "Up to 50 menu items",
-        "Basic QR code generator",
-        "Single outlet support",
-        "Basic support",
-      ],
-      highlighted: false,
-    },
-    {
-      name: "Professional",
-      price: "₹999/month",
-      description:
-        "Ideal for growing restaurants with multiple menus.",
-      features: [
-        "Unlimited menu items",
-        "Custom QR designs",
-        "Multiple outlet support",
-        "Analytics dashboard",
-        "Priority support",
-      ],
-      highlighted: true,
-    },
-    {
-      name: "Enterprise",
-      price: "₹1999/month",
-      description:
-        "Designed for large chains or hotels with premium needs.",
-      features: [
-        "Everything in Pro plan",
-        "White-label branding",
-        "Dedicated account manager",
-        "Advanced analytics & reports",
-        "24/7 support",
-      ],
-      highlighted: false,
-    },
-  ];
+  const [plans, setPlans] = useState([]);
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const response = await getAllPlans();
+        setPlans(response);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchPlans();
+  }, []);
 
   return (
     <section
@@ -52,7 +25,7 @@ const Pricing = () => {
     >
       <div className="text-center mb-12">
         <h2 className="text-4xl font-bold text-gray-800 mb-2">
-          Simple Pricing
+          Pricing
         </h2>
         <p className="text-gray-500">
           Choose the plan that suits your
@@ -61,10 +34,10 @@ const Pricing = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-        {plans.map((plan, index) => (
+        {plans.map((plan: any) => (
           <Card
-            key={index}
-            shadow="md" 
+            key={plan.id}
+            shadow="md"
             padding="xl"
             radius="lg"
             className={`transition-all ${
@@ -78,16 +51,19 @@ const Pricing = () => {
                 {plan.name}
               </h3>
               <p className="text-3xl font-bold text-[#f43f5e] mt-4">
-                {plan.price}
+                ₹{plan.price}
               </p>
               <p className="text-gray-500 mt-2 mb-6">
                 {plan.description}
               </p>
               <ul className="mb-6 space-y-3">
                 {plan.features.map(
-                  (feature, i) => (
+                  (
+                    feature: any,
+                    index: number
+                  ) => (
                     <li
-                      key={i}
+                      key={index}
                       className="text-gray-700 flex items-start"
                     >
                       <span className="text-[#f43f5e] mr-2">

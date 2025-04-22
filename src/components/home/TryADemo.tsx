@@ -1,6 +1,6 @@
-import { Button } from "@mantine/core";
 import React from "react";
 import { Link } from "react-router-dom";
+import Button from "../ui/Button";
 
 const TryADemo = () => {
   return (

@@ -1,4 +1,4 @@
-import { Button } from "@mantine/core";
+import Button from "../ui/Button";
 
 const benefits = [
   {
@@ -81,7 +81,10 @@ const Benefits = () => {
           Offer your customers the WhatsApp-like
           ease of QR code menus.
         </p>
-        <Button radius='xl' className=" font-medium over:scale-105 transition-all duration-300">
+        <Button
+          radius="xl"
+          className=" font-medium over:scale-105 transition-all duration-300"
+        >
           Get Started
         </Button>
       </div>

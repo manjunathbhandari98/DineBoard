@@ -1,29 +1,93 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Container,
   Title,
   Text,
   TextInput,
   Textarea,
-  Button,
   Avatar,
   Group,
   Paper,
+  ActionIcon,
+  FileButton,
 } from "@mantine/core";
+import Button from "../components/ui/Button";
+import { notifications } from "@mantine/notifications";
+import {
+  createHotel,
+  getHotelByUser,
+  updateHotel,
+} from "../service/hotelService";
+import { IconEdit } from "@tabler/icons-react";
+import { getProfileInfo } from "../service/userService";
 
 const HotelProfile = () => {
   const [hasHotel, setHasHotel] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [hotelId, setHotelId] = useState<
+    string | null
+  >(null);
+
+  const [profile, setProfile] = useState<any>();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const response = await getProfileInfo();
+      setProfile(response);
+    };
+    fetchProfile();
+  }, []);
 
   const [hotelData, setHotelData] = useState({
     name: "",
-    logo: "",
+    logoUrl: "",
     address: "",
-    contact: "",
-    email: "",
+    contactPhone: "",
+    contactEmail: "",
     website: "",
     description: "",
   });
+
+  useEffect(() => {
+    if (!profile?.id) return; // wait until profile is loaded
+
+    const fetchHotelByUser = async (
+      userId: string
+    ) => {
+      try {
+        const response = await getHotelByUser(
+          userId
+        );
+        if (response) {
+          setHotelData({
+            name: response.name || "",
+            logoUrl: response.logoUrl || "",
+            address: response.address || "",
+            contactPhone:
+              response.contactPhone || "",
+            contactEmail:
+              response.contactEmail || "",
+            website: response.website || "",
+            description:
+              response.description || "",
+          });
+          setHasHotel(true);
+          setHotelId(response.id);
+        } else {
+          setHasHotel(false);
+          setHotelId(null);
+        }
+      } catch (error) {
+        console.error(
+          "Error fetching hotel:",
+          error
+        );
+        setHasHotel(false);
+      }
+    };
+
+    fetchHotelByUser(profile.id);
+  }, [profile?.id]);
 
   const handleChange = (
     field: string,
@@ -35,29 +99,80 @@ const HotelProfile = () => {
     }));
   };
 
-  const handleSave = () => {
-    setHasHotel(true);
-    setEditMode(false);
-  };
-
-  const handleCancel = () => {
-    if (!hasHotel) {
-      // If canceling without any hotel, reset to initial state
-      setHotelData({
-        name: "",
-        logo: "",
-        address: "",
-        contact: "",
-        email: "",
-        website: "",
-        description: "",
+  const handleSave = async () => {
+    try {
+      if (hasHotel && hotelId) {
+        await updateHotel(hotelId, hotelData);
+        notifications.show({
+          title: "Hotel Updated",
+          message: "Hotel updated successfully",
+          color: "green",
+        });
+      } else {
+        await createHotel(hotelData, profile?.id);
+        notifications.show({
+          title: "Hotel Created",
+          message: "Hotel created successfully",
+          color: "green",
+        });
+        setHasHotel(true);
+      }
+    } catch (error) {
+      notifications.show({
+        title: "Error",
+        message: hasHotel
+          ? "Hotel update failed"
+          : "Hotel creation failed",
+        color: "red",
       });
     }
     setEditMode(false);
   };
 
+  const handleCancel = () => {
+    setEditMode(false);
+  };
+
   const handleCreateHotel = () => {
     setEditMode(true);
+  };
+
+  const handleFileChange = async (
+    file: File | null
+  ) => {
+    if (!file) return;
+
+    try {
+      const img: any = await getBase64(file);
+      const base64Data = img.split(",")[1];
+
+      setHotelData((prev) => ({
+        ...prev,
+        logoUrl: base64Data, // Only update in local state
+      }));
+    } catch (error) {
+      console.error(
+        "Failed to preview logo:",
+        error
+      );
+      notifications.show({
+        title: "Error",
+        message: "Failed to preview logo image",
+        color: "red",
+      });
+    }
+  };
+
+  const getBase64 = (
+    file: File
+  ): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () =>
+        resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
   };
 
   return (
@@ -96,16 +211,48 @@ const HotelProfile = () => {
           withBorder
           className="space-y-6"
         >
-          <Group justify="center">
+          <Group
+            justify="center"
+            className="relative"
+          >
             <Avatar
               src={
-                hotelData.logo ||
-                "/placeholder-logo.png"
+                hotelData.logoUrl?.startsWith(
+                  "data:image"
+                )
+                  ? hotelData.logoUrl
+                  : `data:image/png;base64,${hotelData.logoUrl}`
               }
               alt={hotelData.name}
               size={100}
               radius="xl"
             />
+
+            {editMode && (
+              <FileButton
+                onChange={handleFileChange}
+                accept="image/png,image/jpeg"
+              >
+                {(props) => (
+                  <ActionIcon
+                    {...props}
+                    variant="filled"
+                    color="blue"
+                    radius="xl"
+                    size="sm"
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      right: "calc(50% - 50px)",
+                      transform:
+                        "translateX(50%)",
+                    }}
+                  >
+                    <IconEdit size={16} />
+                  </ActionIcon>
+                )}
+              </FileButton>
+            )}
           </Group>
 
           {editMode ? (
@@ -153,10 +300,10 @@ const HotelProfile = () => {
           {editMode ? (
             <TextInput
               label="Contact Number"
-              value={hotelData.contact}
+              value={hotelData.contactPhone}
               onChange={(e) =>
                 handleChange(
-                  "contact",
+                  "contactPhone",
                   e.currentTarget.value
                 )
               }
@@ -167,17 +314,17 @@ const HotelProfile = () => {
               className="text-center"
               size="sm"
             >
-              📞 {hotelData.contact}
+              📞 {hotelData.contactPhone}
             </Text>
           )}
 
           {editMode ? (
             <TextInput
               label="Email"
-              value={hotelData.email}
+              value={hotelData.contactEmail}
               onChange={(e) =>
                 handleChange(
-                  "email",
+                  "contactEmail",
                   e.currentTarget.value
                 )
               }
@@ -188,7 +335,7 @@ const HotelProfile = () => {
               className="text-center"
               size="sm"
             >
-              📧 {hotelData.email}
+              📧 {hotelData.contactEmail}
             </Text>
           )}
 
@@ -208,7 +355,7 @@ const HotelProfile = () => {
               className="text-center"
               size="sm"
             >
-              📧 {hotelData.website}
+              🌐 {hotelData.website}
             </Text>
           )}
 
@@ -244,7 +391,7 @@ const HotelProfile = () => {
                   color="green"
                   onClick={handleSave}
                 >
-                  Save
+                  {hasHotel ? "Update" : "Save"}
                 </Button>
                 <Button
                   variant="outline"

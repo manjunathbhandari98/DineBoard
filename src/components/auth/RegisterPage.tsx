@@ -1,6 +1,9 @@
 import { useState } from "react";
-import { Button, TextInput } from "@mantine/core";
+import { TextInput } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
+import { registerUser } from "../../service/userService";
+import { notifications } from "@mantine/notifications";
+import Button from "../ui/Button";
 
 const RegisterPage = () => {
   const [fullName, setfullName] = useState("");
@@ -10,21 +13,37 @@ const RegisterPage = () => {
     useState("");
   const navigate = useNavigate(); // Use this for navigation after registration
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       alert("Passwords do not match.");
       return;
     }
-    // Add your registration logic here, e.g., API call for registration
-    console.log("Registering with:", {
-      fullName,
-      email,
-      password,
-    });
-
+    const userData = {
+      name: fullName,
+      email: email,
+      password: password,
+      accountType: "USER",
+    };
+    try {
+      await registerUser(userData);
+      notifications.show({
+        title: "Registered Successfully",
+        message:
+          "Your account has been registered ",
+        color: "green",
+      });
+      navigate("/auth?mode=login");
+    } catch (error: any) {
+      notifications.show({
+        title: "Failed To Register",
+        message: error.message,
+        color: "red",
+      });
+    }
     // If registration successful, redirect user
-    navigate("/dashboard"); // Redirect to the dashboard (or any other page)
   };
 
   return (

@@ -1,17 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Container,
   Title,
   Switch,
   Select,
-  Button,
   Paper,
   Divider,
   Group,
   ColorInput,
 } from "@mantine/core";
+import Button from "../components/ui/Button";
+import { useThemeContext } from "../app/ThemeProvider";
 
 const SettingsPage = () => {
+  const { colorScheme, toggleColorScheme } =
+    useThemeContext(); // <-- use custom hook
+
   const [settings, setSettings] = useState({
     notifications: true,
     theme: "light",
@@ -22,10 +26,24 @@ const SettingsPage = () => {
     timezone: "Asia/Kolkata",
   });
 
+  useEffect(() => {
+    // Sync theme from context to local settings
+    setSettings((prev) => ({
+      ...prev,
+      theme: colorScheme,
+    }));
+  }, [colorScheme]);
+
   const handleChange = (
     field: string,
     value: any
   ) => {
+    if (field === "theme") {
+      toggleColorScheme(
+        value as "light" | "dark"
+      ); // <-- update context theme
+    }
+
     setSettings((prev) => ({
       ...prev,
       [field]: value,
@@ -33,13 +51,13 @@ const SettingsPage = () => {
   };
 
   const handleSave = () => {
-    // TODO: Save to backend or persist in storage
     console.log("Settings saved:", settings);
+    // You can persist these settings if needed
   };
 
   const handleCancel = () => {
-    // TODO: Reset to previous values if needed
     console.log("Changes canceled.");
+    // Optional: reset to previous state
   };
 
   return (

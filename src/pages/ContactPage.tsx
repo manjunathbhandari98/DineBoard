@@ -1,10 +1,10 @@
 import {
-  Button,
   TextInput,
   Textarea,
   Group,
   Paper,
 } from "@mantine/core";
+import Button from "../components/ui/Button";
 
 const ContactPage = () => {
   return (

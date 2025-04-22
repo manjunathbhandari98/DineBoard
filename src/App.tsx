@@ -1,19 +1,20 @@
-
 import ThemeProvider from "./app/ThemeProvider";
 import "@mantine/core/styles.css";
 import { BrowserRouter } from "react-router-dom";
-import AppContent from './routes/AppContext'
-import './App.css';
+import "@mantine/notifications/styles.css";
+import AppContent from "./routes/AppContext";
+import "./App.css";
+import { AuthChecker } from "./context/AuthContext";
 
 const App = () => {
   return (
     <ThemeProvider>
       <BrowserRouter>
-       <AppContent/>
+        <AuthChecker />
+        <AppContent />
       </BrowserRouter>
     </ThemeProvider>
   );
-}
+};
 
-
-export default App
+export default App;

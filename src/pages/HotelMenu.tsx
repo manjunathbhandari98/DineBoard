@@ -1,357 +1,720 @@
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import {
   Button,
   Card,
   Group,
-  Modal,
   Text,
   TextInput,
-  Textarea,
   Title,
-  Select,
-  Grid,
+  Modal,
   Tabs,
+  NumberInput,
+  Container,
+  Stack,
+  Badge,
+  Paper,
+  SimpleGrid,
+  LoadingOverlay,
+  Alert,
+  Image,
+  Textarea,
+  Box,
+  Loader,
+  FileButton,
+  FileInput, // Use Loader for specific loading states
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import {
   IconPlus,
-  IconEdit,
-  IconEye,
+  IconAlertCircle,
+  IconListDetails,
+  IconToolsKitchen2,
+  IconPhoto,
+  IconCheck, // Added for notifications
 } from "@tabler/icons-react";
-import { useState } from "react";
-import PreviewMenu from "./PreviewMenu";
+import {
+  createMenu,
+  addMenuCategory,
+  updateMenu,
+  getMenu,
+  getCategoryByMenu,
+  addMenuItem,
+  getMenuItems, // Import the service to fetch items
+} from "../service/menuService"; // Assuming menuService exports getMenuItems
+import { getHotelByUser } from "../service/hotelService";
+import { getProfileInfo } from "../service/userService";
+import { notifications } from "@mantine/notifications";
+import {
+  Menu,
+  MenuCategory,
+  Profile,
+  MenuItem,
+} from "../interface";
+import AddItemModal from "../components/hotelMenu/AddItemModal";
+import CreateMenuModal from "../components/hotelMenu/CreateMenuModal";
+import MenuCard from "../components/hotelMenu/MenuCard";
+import MenuHeader from "../components/hotelMenu/MenuHeader";
+import EmptyMenuNotice from "../components/hotelMenu/EmptyMenuNotice";
+import MenuItemsGrid from "../components/hotelMenu/MenuItemsGrid";
+// Optional: Add notifications for better UX
+// import { notifications } from '@mantine/notifications';
 
-const HotelMenu = () => {
-  const [modalOpen, setModalOpen] =
-    useState(false); // Menu item modal
+const MenuManager: React.FC = () => {
+  const [menus, setMenus] = useState<Menu[]>([]);
+  const [activeMenu, setActiveMenu] =
+    useState<Menu | null>(null);
+  const [categories, setCategories] = useState<
+    MenuCategory[]
+  >([]);
+  const [profile, setProfile] =
+    useState<Profile | null>(null);
+  const [hotelId, setHotelId] = useState<
+    string | null
+  >(null); // Or number
+
+  // Loading states
+  const [isInitialLoading, setIsInitialLoading] =
+    useState(true); // Overall initial load
   const [
-    categoryModalOpen,
-    setCategoryModalOpen,
-  ] = useState(false); // Category modal
-  const [newCategory, setNewCategory] =
-    useState("");
-  const [previewMode, setPreviewMode] =
+    isCategoryLoading,
+    setIsCategoryLoading,
+  ] = useState(false); // Loading categories for active menu
+  const [isItemLoading, setIsItemLoading] =
+    useState(false); // Loading items for active tab
+  const [isSubmitting, setIsSubmitting] =
     useState(false);
 
-  const [categories, setCategories] = useState([
-    "Main Course",
-    "Biryani",
-    "Desserts",
-    "Starters",
-  ]);
+  // State for items of the currently selected category tab
+  const [
+    activeCategoryItems,
+    setActiveCategoryItems,
+  ] = useState<MenuItem[]>([]);
+  const [
+    activeTabCategoryId,
+    setActiveTabCategoryId,
+  ] = useState<string | null>(null); // Track the active tab value (category ID)
 
-  const [menuItems, setMenuItems] = useState([
+  // Modal states
+  const [
+    menuModalOpened,
     {
-      id: 1,
-      name: "Paneer Tikka",
-      category: "Starters",
-      price: "220",
-      description:
-        "Creamy tomato-based curry with cottage cheese cubes.",
-      image:
-        "https://imgs.search.brave.com/FuYPwCqFYn2vkoDs-6kxN7g7B9urpioml8wBoK2fAnw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/aW5kaWFuaGVhbHRo/eXJlY2lwZXMuY29t/L3dwLWNvbnRlbnQv/dXBsb2Fkcy8yMDE0/LzExL3BhbmVlci10/aWtrYS53ZWJw",
+      open: openMenuModal,
+      close: closeMenuModal,
     },
+  ] = useDisclosure(false);
+  const [
+    itemModalOpened,
     {
-      id: 2,
-      name: "Butter Chicken",
-      category: "Main Course",
-      price: "290",
-      description:
-        "Creamy tomato-based curry with cottage cheese cubes.",
-      image:
-        "https://imgs.search.brave.com/u_8EIbixvlHiPqF9SyvNFqaQdzi_vwVciJDp64WruBo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzAyLzYzLzk5Lzg3/LzM2MF9GXzI2Mzk5/ODcwMV9HS2xBTVh2/V1RYbUlUb3NQcXhl/S1dxNTVPU0hoVWds/YS5qcGc",
+      open: openItemModal,
+      close: closeItemModal,
     },
-    {
-      id: 3,
-      name: "Veg Biryani",
-      category: "Biryani",
-      price: "240",
-      description:
-        "Creamy tomato-based curry with cottage cheese cubes.",
-      image:
-        "https://imgs.search.brave.com/LdJTAmgSUI7TR7Klm1QNHK2BS9r_EO9wgekD--d2KJo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/dGVycmFmb29kLmNv/LmluL2Nkbi9zaG9w/L2ZpbGVzL1ZlZ0Jp/cnlhbmkuanBnP3Y9/MTY4Nzc2NjU5MiZ3/aWR0aD0xOTQ2",
-    },
-    {
-      id: 4,
-      name: "Gulab Jamun",
-      category: "Desserts",
-      price: "120",
-      description:
-        "Creamy tomato-based curry with cottage cheese cubes.",
-      image:
-        "https://imgs.search.brave.com/b9F-pkzI1WGsvbU249yQTOXKdN9E5Y-5yS0lk70mb5g/rs:fit:860:0:0:0/g:ce/aHR0cDovL2Zhcm04/LnN0YXRpY2ZsaWNr/ci5jb20vNzIyNy82/OTU0ODY0MTcyX2Yw/OTBkYjZiYjVfei5q/cGc",
-    },
-    {
-      id: 5,
-      name: "Chicken Biryani",
-      category: "Biryani",
-      price: "300",
-      description:
-        "Creamy tomato-based curry with cottage cheese cubes.",
-      image:
-        "https://imgs.search.brave.com/P8jeDn_SJRCJvQUTLNQxHC-Ul-mYL_bO1woGjwbX-uI/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5nZXR0eWltYWdl/cy5jb20vaWQvMTI0/NDc2OTIxNy9waG90/by9jaGlja2VuLWR1/bS1iaXJ5YW5pLWlu/LXRvcm9udG8tb250/YXJpby1jYW5hZGEt/b24tbm92ZW1iZXIt/MTItMjAyMi5qcGc_/cz02MTJ4NjEyJnc9/MCZrPTIwJmM9ZDBr/X0lCXzFKcGE4YVFq/ak5BX2dNbkZQMUZ2/TUhmSHByalRaUVFw/NHplST0",
-    },
-  ]);
+  ] = useDisclosure(false);
 
-  const [newItem, setNewItem] = useState({
-    name: "",
-    description: "",
-    price: "",
-    category: "",
-    image: "",
-  });
+  // Form states
+  const [newMenuName, setNewMenuName] =
+    useState("");
+  const [categoryName, setCategoryName] =
+    useState("");
+  const [
+    selectedCategoryIdForItem,
+    setSelectedCategoryIdForItem,
+  ] = useState<string | null>(null); // Category ID for the "Add Item" modal
 
-  const handleAddItem = () => {
-    const newMenuItem = {
-      ...newItem,
-      id: Date.now(),
-    };
-    setMenuItems((prev) => [
-      ...prev,
-      newMenuItem,
-    ]);
-    setNewItem({
-      name: "",
-      description: "",
-      price: "",
-      category: "",
-      image: "",
-    });
-    setModalOpen(false);
+  // New item form states
+  const [itemName, setItemName] = useState("");
+  const [itemDescription, setItemDescription] =
+    useState("");
+  const [itemPrice, setItemPrice] = useState<
+    number | null
+  >(null);
+  const [itemImage, setItemImage] =
+    useState<File | null>(null);
+  const [base64Image, setBase64Image] = useState<
+    string | null
+  >(null);
+
+  // --- Data Fetching ---
+
+  // Fetch Profile and Hotel ID (runs once)
+  const fetchProfileAndHotel =
+    useCallback(async () => {
+      setIsInitialLoading(true);
+      try {
+        const profileData =
+          await getProfileInfo();
+        setProfile(profileData);
+        if (profileData?.id) {
+          const hotelData = await getHotelByUser(
+            profileData.id
+          );
+          setHotelId(hotelData.id);
+        } else {
+          console.error("Profile ID not found.");
+        }
+      } catch (error) {
+        console.error(
+          "Error fetching profile or hotel:",
+          error
+        );
+        // Show error notification
+      } finally {
+        // Loading finished after menus are fetched
+        setIsInitialLoading(false);
+      }
+    }, []);
+
+  // Fetch Menus list (runs when hotelId changes)
+  const fetchMenus = useCallback(async () => {
+    if (!hotelId) return;
+    setIsInitialLoading(true); // Still part of initial load sequence
+    try {
+      const data = await getMenu(hotelId);
+      setMenus(data);
+
+      // If there's an active menu, refresh its data too
+      if (activeMenu) {
+        const refreshedActiveMenu = data.find(
+          (m: Menu) => m.id === activeMenu.id
+        );
+        if (!refreshedActiveMenu) {
+          setActiveMenu(null); // Clear active menu if it was deleted
+          setCategories([]);
+          setActiveCategoryItems([]);
+          setActiveTabCategoryId(null);
+        } else {
+          setActiveMenu(refreshedActiveMenu);
+          // Categories will be refetched by the other effect if activeMenu.id is stable
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching menus:",
+        error
+      );
+      // Show error notification
+    } finally {
+      setIsInitialLoading(false); // Initial load ends here
+    }
+  }, [hotelId, activeMenu?.id]); // Include activeMenu.id to potentially refresh
+
+  // Fetch Categories for the Active Menu (runs when activeMenu changes)
+  const fetchCategoriesForActiveMenu =
+    useCallback(async () => {
+      if (!activeMenu?.id) {
+        setCategories([]);
+        setActiveCategoryItems([]);
+        setActiveTabCategoryId(null);
+        return;
+      }
+      setIsCategoryLoading(true);
+      setActiveCategoryItems([]); // Clear items when menu changes
+      setActiveTabCategoryId(null); // Clear active tab
+      try {
+        // This service ONLY returns categories, NOT items
+        const fetchedCategories =
+          await getCategoryByMenu(activeMenu.id);
+        setCategories(fetchedCategories);
+
+        // *** Automatically set the first category tab as active ***
+        if (fetchedCategories.length > 0) {
+          setActiveTabCategoryId(
+            String(fetchedCategories[0].id)
+          );
+          // Items for this first tab will be fetched by the fetchItemsForActiveTab effect
+        } else {
+          setActiveTabCategoryId(null); // No categories, no active tab
+        }
+      } catch (error) {
+        console.error(
+          `Error fetching categories for menu ${activeMenu.id}:`,
+          error
+        );
+        setCategories([]); // Clear on error
+        // Show error notification
+      } finally {
+        setIsCategoryLoading(false);
+      }
+    }, [activeMenu?.id]);
+
+  // *** Fetch Menu Items for the Active Category Tab ***
+  const fetchItemsForActiveTab =
+    useCallback(async () => {
+      // Only fetch if we have an active menu and an active category tab ID
+      if (
+        !activeMenu?.id ||
+        !activeTabCategoryId
+      ) {
+        setActiveCategoryItems([]); // Clear items if no active tab/menu
+        return;
+      }
+      setIsItemLoading(true);
+      try {
+        // Call the specific service to get items for the active category
+        const items = await getMenuItems(
+          activeMenu.id,
+          activeTabCategoryId
+        );
+        setActiveCategoryItems(items || []); // Ensure it's an array
+      } catch (error) {
+        console.error(
+          `Error fetching items for category ${activeTabCategoryId}:`,
+          error
+        );
+        setActiveCategoryItems([]); // Clear items on error
+        // Show error notification
+      } finally {
+        setIsItemLoading(false);
+      }
+    }, [activeMenu?.id, activeTabCategoryId]); // Dependencies: menu ID and active tab ID
+
+  // --- Triggering Effects ---
+  useEffect(() => {
+    fetchProfileAndHotel();
+  }, [fetchProfileAndHotel]);
+
+  useEffect(() => {
+    fetchMenus();
+  }, [fetchMenus]);
+
+  useEffect(() => {
+    fetchCategoriesForActiveMenu();
+  }, [fetchCategoriesForActiveMenu]);
+
+  // *** New Effect to fetch items when the active tab changes ***
+  useEffect(() => {
+    fetchItemsForActiveTab();
+  }, [fetchItemsForActiveTab]); // Runs when fetchItemsForActiveTab function identity changes (due to dependencies)
+
+  // --- Action Handlers (Mostly unchanged, ensure IDs are passed correctly) ---
+
+  const handleAddMenu = async () => {
+    if (!newMenuName.trim() || !hotelId) return;
+    setIsSubmitting(true);
+    try {
+      const newMenuPayload = {
+        title: newMenuName,
+        isPublished: false,
+        hotelId: hotelId,
+      };
+      await createMenu(newMenuPayload);
+      console.log(newMenuPayload);
+
+      setNewMenuName("");
+      closeMenuModal();
+      await fetchMenus(); // Refetch menus list
+      // Show success notification
+    } catch (error) {
+      console.error(
+        "Error creating menu:",
+        error
+      );
+      // Show error notification
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleAddCategory = () => {
-    const trimmed = newCategory.trim();
-    if (!trimmed) return;
-    if (!categories.includes(trimmed)) {
-      setCategories((prev) => [...prev, trimmed]);
+  const handleAddCategory = async () => {
+    if (!categoryName.trim() || !activeMenu?.id)
+      return;
+    setIsSubmitting(true);
+    try {
+      const newCategoryPayload = {
+        name: categoryName,
+        menuId: activeMenu.id,
+      };
+      await addMenuCategory(newCategoryPayload);
+      setCategoryName("");
+      await fetchCategoriesForActiveMenu(); // Refetch categories, which will trigger item fetch for the (newly set) first tab
+      // Show success notification
+    } catch (error) {
+      console.error(
+        "Error adding category:",
+        error
+      );
+      // Show error notification
+    } finally {
+      setIsSubmitting(false);
     }
-    setNewCategory("");
-    setCategoryModalOpen(false);
+  };
+
+  const handlePublish = async (menu: Menu) => {
+    if (!menu?.id) return; // Now we use the passed menu instead of activeMenu
+    setIsSubmitting(true);
+    try {
+      const updatedData = {
+        ...menu,
+        isPublished: true,
+      };
+      console.log(updatedData);
+
+      await updateMenu(menu.id, updatedData); // Update the correct menu
+
+      notifications.show({
+        title: "Menu Published",
+        message: "Menu isPublished Successfully",
+        color: "green",
+      });
+
+      await fetchMenus(); // Refetch menu list
+      // Show success notification
+    } catch (error) {
+      console.error(
+        "Error publishing menu:",
+        error
+      );
+      // Show error notification
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenAddItemModal = (
+    categoryId: string
+  ) => {
+    setSelectedCategoryIdForItem(categoryId); // Set the category ID for the item modal
+    setItemName("");
+    setItemDescription("");
+    setItemPrice(0);
+    setItemImage(null);
+    setBase64Image(null);
+    openItemModal();
+  };
+
+  const getBase64 = (
+    file: File | null
+  ): Promise<string | null> => {
+    return new Promise((resolve, reject) => {
+      if (!file) {
+        resolve(null);
+        return;
+      }
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () =>
+        resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleFileChange = (
+    file: File | null
+  ) => {
+    setItemImage(file);
+    getBase64(file).then(setBase64Image);
+  };
+
+  const handleItemSubmit = async () => {
+    if (
+      !selectedCategoryIdForItem || // Use the specific state for the modal
+      !activeMenu?.id ||
+      !itemName.trim() ||
+      itemPrice === null ||
+      itemPrice < 0
+    ) {
+      console.error(
+        "Missing required item fields, invalid price, or no image selected."
+      );
+      // Show error notification
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const base64Data =
+        base64Image?.split(",")[1];
+      const newItemPayload: Omit<MenuItem, "id"> =
+        {
+          name: itemName,
+          description: itemDescription,
+          price: Number(itemPrice),
+          menuId: activeMenu.id,
+          categoryId: selectedCategoryIdForItem, // Use the correct category ID
+          itemImage: base64Data,
+        };
+      await addMenuItem(newItemPayload);
+
+      // *** Refetch items ONLY for the category we just added to ***
+      // Check if the added item's category is the currently active tab
+      if (
+        selectedCategoryIdForItem ===
+        activeTabCategoryId
+      ) {
+        await fetchItemsForActiveTab(); // Refetch items for the current tab
+      }
+      // No need to refetch all categories unless the count badge needs update immediately
+
+      closeItemModal();
+      setItemImage(null);
+      setBase64Image(null);
+      // Show success notification
+    } catch (error) {
+      console.error("Error adding item:", error);
+      // Show error notification
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // --- Render Logic ---
+
+  // Render function remains the same, takes items array
+  const renderMenuItems = (items: MenuItem[]) => {
+    <MenuItemsGrid
+      items={items}
+      isLoading={isItemLoading}
+    />;
   };
 
   return (
-    <div className="p-4 md:p-10 bg-gray-50 min-h-screen">
-      <Group
-        justify="space-between"
-        className="mb-6"
-      >
-        <Title order={2}>Manage Menu</Title>
-        <Group>
-          <Button
-            onClick={() =>
-              setPreviewMode((prev) => !prev)
-            }
-            variant="outline"
-            leftSection={<IconEye size={18} />}
-          >
-            {previewMode
-              ? "Exit Preview"
-              : "Preview Menu"}
-          </Button>
-          <Button
-            onClick={() => setModalOpen(true)}
-            leftSection={<IconPlus size={18} />}
-          >
-            Add Item
-          </Button>
-          <Button
-            onClick={() =>
-              setCategoryModalOpen(true)
-            }
-            leftSection={<IconPlus size={18} />}
-          >
-            Add Category
-          </Button>
-        </Group>
-      </Group>
+    <Container
+      size="lg"
+      py="xl"
+    >
+      <Stack gap="xl">
+        {/* Header and Add Menu Button */}
+        <MenuHeader
+          hotelId={hotelId}
+          isLoading={isInitialLoading}
+          onClick={openMenuModal}
+        />
 
-      {previewMode ? (
-        <PreviewMenu />
-      ) : (
-        <Tabs defaultValue={categories[0]}>
-          <Tabs.List>
-            {categories.map((cat) => (
-              <Tabs.Tab
-                key={cat}
-                value={cat}
+        {/* Loading/Empty States */}
+        <LoadingOverlay
+          visible={isInitialLoading}
+          overlayProps={{ radius: "sm", blur: 2 }}
+        />
+
+        {!isInitialLoading && !hotelId && (
+          <Alert
+            icon={<IconAlertCircle size="1rem" />}
+            title="Hotel Not Found"
+            color="orange"
+          >
+            Could not find an associated hotel.
+            Please ensure your profile is linked.
+          </Alert>
+        )}
+
+        {!isInitialLoading &&
+          hotelId &&
+          menus.length === 0 && (
+            <EmptyMenuNotice
+              onClick={openMenuModal}
+            />
+          )}
+
+        {/* Menu List */}
+        {!isInitialLoading &&
+          hotelId &&
+          menus.length > 0 && (
+            <Stack gap="md">
+              {menus.map((menu) => (
+                <MenuCard
+                  key={menu.id}
+                  menu={menu}
+                  activeMenu={activeMenu}
+                  setActiveMenu={setActiveMenu}
+                  onPublish={() =>
+                    handlePublish(menu)
+                  }
+                  isSubmitting={isSubmitting}
+                />
+              ))}
+            </Stack>
+          )}
+
+        {/* --- Active Menu Management Section --- */}
+        {activeMenu && (
+          <Paper
+            shadow="md"
+            p="xl"
+            mt="xl"
+            radius="md"
+            withBorder
+            pos="relative"
+          >
+            {/* Overlay for category loading */}
+            <LoadingOverlay
+              visible={isCategoryLoading}
+              overlayProps={{
+                radius: "sm",
+                blur: 1,
+              }}
+            />
+            <Stack gap="lg">
+              <Title order={3}>
+                Manage: {activeMenu.title}
+              </Title>
+
+              {/* Add Category Form */}
+              <Paper
+                withBorder
+                p="md"
+                radius="sm"
               >
-                {cat}
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
+                <Group align="flex-end">
+                  <TextInput
+                    label="New Category Name"
+                    placeholder="e.g., Appetizers, Main Course"
+                    value={categoryName}
+                    onChange={(e) =>
+                      setCategoryName(
+                        e.currentTarget.value
+                      )
+                    }
+                    style={{ flexGrow: 1 }}
+                    disabled={
+                      isSubmitting ||
+                      isCategoryLoading
+                    }
+                  />
+                  <Button
+                    onClick={handleAddCategory}
+                    disabled={
+                      !categoryName.trim() ||
+                      isSubmitting ||
+                      isCategoryLoading
+                    }
+                    loading={
+                      isSubmitting &&
+                      categoryName.trim() !== ""
+                    }
+                  >
+                    Add Category
+                  </Button>
+                </Group>
+              </Paper>
 
-          {categories.map((cat) => (
-            <Tabs.Panel
-              key={cat}
-              value={cat}
-              pt="xs"
-            >
-              <Grid>
-                {menuItems
-                  .filter(
-                    (item) =>
-                      item.category === cat
-                  )
-                  .map((item) => (
-                    <Grid.Col
-                      key={item.id}
-                      span={{
-                        base: 12,
-                        sm: 6,
-                        md: 4,
-                      }}
-                    >
-                      <Card
-                        shadow="sm"
-                        radius="md"
-                        withBorder
-                      >
-                        {item.image && (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-full h-40 object-cover rounded-t-md mb-3"
-                          />
-                        )}
-                        <Title order={5}>
-                          {item.name}
-                        </Title>
-                        <Text
-                          size="sm"
-                          color="dimmed"
-                          className="mb-2"
+              {/* Categories and Items Tabs */}
+              <Box mt="lg">
+                {isCategoryLoading ? (
+                  <Group
+                    justify="center"
+                    p="lg"
+                  >
+                    <Loader size="sm" />
+                    <Text>
+                      Loading categories...
+                    </Text>
+                  </Group>
+                ) : categories.length === 0 ? (
+                  <Text
+                    c="dimmed"
+                    ta="center"
+                    mt="md"
+                  >
+                    No categories added yet for "
+                    {activeMenu.title}". Use the
+                    form above.
+                  </Text>
+                ) : (
+                  <Tabs
+                    // Controlled component: value is state, onChange updates state
+                    value={activeTabCategoryId} // Controlled by state
+                    onChange={
+                      setActiveTabCategoryId
+                    } // Update state on tab change -> triggers item fetch effect
+                    keepMounted={false}
+                  >
+                    <Tabs.List>
+                      {categories.map((cat) => (
+                        <Tabs.Tab
+                          key={cat.id}
+                          value={String(cat.id)} // Value must be string
+                          // Optional: Show loading indicator on the specific tab being loaded
+                          // rightSection={isItemLoading && activeTabCategoryId === String(cat.id) ? <Loader size="xs" /> : null}
                         >
-                          {item.description}
-                        </Text>
-                        <Group justify="apart">
-                          <Text fw={500}>
-                            ₹{item.price}
-                          </Text>
-                          <Button
-                            variant="light"
-                            size="xs"
-                            leftSection={
-                              <IconEdit
-                                size={16}
-                              />
+                          {cat.name}
+                          {/* Item count badge is tricky now as items load separately.
+                                                    Could show count once loaded, or remove it. */}
+                          {/* <Badge size="xs" circle ml="xs">{activeTabCategoryId === String(cat.id) ? activeCategoryItems.length : '?'}</Badge> */}
+                        </Tabs.Tab>
+                      ))}
+                    </Tabs.List>
+
+                    {/* Render only ONE panel's content: the active one */}
+                    {/* We find the active category and render its items */}
+                    {categories.map((cat) => (
+                      <Tabs.Panel
+                        key={cat.id}
+                        value={String(cat.id)} // Value must be string
+                        pt="lg"
+                      >
+                        <Stack gap="md">
+                          <Group justify="flex-end">
+                            {" "}
+                            {/* Button now just on the right */}
+                            <Button
+                              leftSection={
+                                <IconPlus
+                                  size={16}
+                                />
+                              }
+                              size="xs"
+                              variant="light"
+                              // Pass the actual category ID of this panel
+                              onClick={() =>
+                                handleOpenAddItemModal(
+                                  String(cat.id)
+                                )
+                              }
+                            >
+                              Add Item to{" "}
+                              {cat.name}
+                            </Button>
+                          </Group>
+
+                          <MenuItemsGrid
+                            items={
+                              activeCategoryItems ||
+                              []
                             }
-                          >
-                            Edit
-                          </Button>
-                        </Group>
-                      </Card>
-                    </Grid.Col>
-                  ))}
-              </Grid>
-            </Tabs.Panel>
-          ))}
-        </Tabs>
-      )}
+                            isLoading={
+                              isItemLoading
+                            }
+                          />
+                        </Stack>
+                      </Tabs.Panel>
+                    ))}
+                  </Tabs>
+                )}
+              </Box>
+            </Stack>
+          </Paper>
+        )}
+      </Stack>
 
-      {/* Modal: Add New Menu Item */}
-      <Modal
-        opened={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Add New Menu Item"
-        centered
-      >
-        <TextInput
-          label="Item Name"
-          placeholder="Enter item name"
-          value={newItem.name}
-          onChange={(e) =>
-            setNewItem({
-              ...newItem,
-              name: e.target.value,
-            })
-          }
-        />
-        <Textarea
-          label="Description"
-          placeholder="Short description"
-          className="mt-4"
-          value={newItem.description}
-          onChange={(e) =>
-            setNewItem({
-              ...newItem,
-              description: e.target.value,
-            })
-          }
-        />
-        <TextInput
-          label="Image URL"
-          placeholder="https://example.com/image.jpg"
-          className="mt-4"
-          value={newItem.image}
-          onChange={(e) =>
-            setNewItem({
-              ...newItem,
-              image: e.target.value,
-            })
-          }
-        />
+      {/* --- Modals (Unchanged, ensure IDs are handled correctly) --- */}
 
-        <TextInput
-          label="Price"
-          placeholder="e.g. 250"
-          type="number"
-          className="mt-4"
-          value={newItem.price}
-          onChange={(e) =>
-            setNewItem({
-              ...newItem,
-              price: e.target.value,
-            })
-          }
-        />
-        <Select
-          label="Category"
-          placeholder="Select category"
-          data={categories}
-          className="mt-4"
-          value={newItem.category}
-          onChange={(value) =>
-            setNewItem({
-              ...newItem,
-              category: value || "",
-            })
-          }
-        />
-        <Button
-          fullWidth
-          className="mt-6"
-          onClick={handleAddItem}
-        >
-          Add Item
-        </Button>
-      </Modal>
+      <CreateMenuModal
+        opened={menuModalOpened}
+        onClose={closeMenuModal}
+        newMenuName={newMenuName}
+        setNewMenuName={setNewMenuName}
+        onSubmit={handleAddMenu}
+        isSubmitting={isSubmitting}
+      />
 
-      {/* Modal: Add New Category */}
-      <Modal
-        opened={categoryModalOpen}
-        onClose={() =>
-          setCategoryModalOpen(false)
-        }
-        title="Add New Category"
-        centered
-      >
-        <TextInput
-          label="Category Name"
-          placeholder="e.g. Appetizers"
-          value={newCategory}
-          onChange={(e) =>
-            setNewCategory(e.target.value)
-          }
-        />
-        <Button
-          fullWidth
-          className="mt-4"
-          onClick={handleAddCategory}
-        >
-          Add Category
-        </Button>
-      </Modal>
-    </div>
+      <AddItemModal
+        opened={itemModalOpened}
+        onClose={closeItemModal}
+        onSubmit={handleItemSubmit}
+        isSubmitting={isSubmitting}
+        itemName={itemName}
+        setItemName={setItemName}
+        setItemDescription={setItemDescription}
+        itemDescription={itemDescription}
+        itemPrice={itemPrice}
+        setItemPrice={setItemPrice}
+        onFileChange={handleFileChange}
+        base64Image={base64Image}
+      />
+    </Container>
   );
 };
 
-export default HotelMenu;
+export default MenuManager;

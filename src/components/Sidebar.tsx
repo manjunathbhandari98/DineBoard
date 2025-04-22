@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import NavLinks from "./NavLinks";
 import { IconX } from "@tabler/icons-react";
-import { Button } from "@mantine/core";
 import ProfileMenu from "./ProfileMenu";
+import Button from "./ui/Button";
 
 const Sidebar = ({
   isOpen,
