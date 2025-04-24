@@ -92,6 +92,33 @@ export const updateMenu = async (
   }
 };
 
+export const deleteMenu = async (menuId: any) => {
+  try {
+    const response = await axios.delete(
+      `${BASE_URL}/menus/${menuId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${getToken(
+            "authToken"
+          )}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      throw (
+        e.response?.data || {
+          message: "Can't Delete Menu",
+        }
+      );
+    }
+    throw {
+      message: "An unexpected error occurred",
+    };
+  }
+};
+
 export const addMenuCategory = async (
   categoryData: any
 ) => {
@@ -137,6 +164,55 @@ export const getCategoryByMenu = async (
   }
 };
 
+export const updateCategory = async (
+  categoryId: any,
+  data: any
+) => {
+  try {
+    const response = await axios.put(
+      `${BASE_URL}/category/${categoryId}`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${getToken(
+            "authToken"
+          )}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (e) {
+    throw {
+      message: "An unexpected error occured",
+    };
+  }
+};
+
+export const deleteCategory = async (
+  categoryId: any
+) => {
+  try {
+    const response = await axios.delete(
+      `${BASE_URL}/category/${categoryId}`,
+
+      {
+        headers: {
+          Authorization: `Bearer ${getToken(
+            "authToken"
+          )}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (e) {
+    throw {
+      message: "An unexpected error occured",
+    };
+  }
+};
+
 export const addMenuItem = async (
   menuItem: any
 ) => {
@@ -167,6 +243,52 @@ export const getMenuItems = async (
   try {
     const response = await axios.get(
       `${BASE_URL}/menu-item/menu/${menuId}/${categoryId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${getToken(
+            "authToken"
+          )}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw {
+      message: "An Unexpected error occured",
+    };
+  }
+};
+
+export const updateMenuItemService = async (
+  menuItemId: any,
+  data: any
+) => {
+  try {
+    const response = await axios.put(
+      `${BASE_URL}/menu-item/${menuItemId}`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${getToken(
+            "authToken"
+          )}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw {
+      message: "An Unexpected error occured",
+    };
+  }
+};
+
+export const deleteMenuItemService = async (
+  menuItemId: any
+) => {
+  try {
+    const response = await axios.delete(
+      `${BASE_URL}/menu-item/${menuItemId}`,
       {
         headers: {
           Authorization: `Bearer ${getToken(

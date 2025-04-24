@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Card,
   Group,
   Image,
@@ -6,17 +7,28 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  Tooltip,
+  Flex, // Import Flex for better layout control
 } from "@mantine/core";
 import { MenuItem } from "../../interface"; // adjust path
+import {
+  IconEdit,
+  IconTrash,
+  IconX,
+} from "@tabler/icons-react";
 
 interface Props {
   items: MenuItem[];
   isLoading: boolean;
+  onEdit: (item: MenuItem) => void;
+  onDelete: (item: MenuItem) => void;
 }
 
 const MenuItemsGrid = ({
   items,
   isLoading,
+  onEdit,
+  onDelete,
 }: Props) => {
   if (isLoading) {
     return (
@@ -51,46 +63,87 @@ const MenuItemsGrid = ({
       {items.map((item) => (
         <Card
           key={item.id}
-          shadow="sm"
+          shadow="md" // Slightly stronger shadow for better definition
           padding="md"
           radius="md"
           withBorder
         >
-          {item.itemImage && (
-            <Card.Section>
-              <Image
-                src={item.itemImage}
-                height={120}
-                alt={item.name}
-                fit="cover"
-              />
-            </Card.Section>
-          )}
           <Stack
-            gap="xs"
-            mt={item.itemImage ? "md" : 0}
+            justify="space-between"
+            h="100%"
           >
-            <Text
-              fw={600}
-              size="lg"
-              lineClamp={1}
+            {" "}
+            {/* Use Stack for vertical layout */}
+            {item.itemImage && (
+              <Card.Section>
+                <Image
+                  src={item.itemImage}
+                  height={120}
+                  alt={item.name}
+                  fit="cover"
+                  radius="sm" // Add some border radius to the image
+                />
+              </Card.Section>
+            )}
+            <Stack
+              gap="xs"
+              mt={item.itemImage ? "md" : 0}
             >
-              {item.name}
-            </Text>
-            <Text
-              size="sm"
-              c="dimmed"
-              lineClamp={2}
+              <Text
+                fw={600}
+                size="lg"
+                lineClamp={1}
+              >
+                {item.name}
+              </Text>
+              <Text
+                size="sm"
+                c="dimmed"
+                lineClamp={2}
+              >
+                {item.description ||
+                  "No description."}
+              </Text>
+              <Text
+                fw={700}
+                size="md"
+              >
+                ₹{item.price.toFixed(2)}
+              </Text>
+            </Stack>
+            <Flex
+              justify="end"
+              mt="md"
             >
-              {item.description ||
-                "No description."}
-            </Text>
-            <Text
-              fw={700}
-              size="md"
-            >
-              ₹{item.price.toFixed(2)}
-            </Text>
+              {" "}
+              {/* Use Flex for horizontal button alignment */}
+              <Tooltip label="Edit">
+                <ActionIcon
+                  variant="light"
+                  color="blue"
+                  radius="md" // Slightly smaller radius for a cleaner look
+                  size="sm" // Smaller size for action icons
+                  onClick={() => onEdit(item)}
+                  className="transition-all hover:scale-105" // Subtle hover effect
+                >
+                  <IconEdit size={16} />{" "}
+                  {/* Smaller icons */}
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Delete">
+                <ActionIcon
+                  variant="light"
+                  color="red"
+                  radius="md"
+                  size="sm"
+                  onClick={() => onDelete(item)}
+                  className="transition-all hover:scale-105"
+                  ml="xs" // Add some spacing between the icons
+                >
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Tooltip>
+            </Flex>
           </Stack>
         </Card>
       ))}

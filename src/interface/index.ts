@@ -30,3 +30,9 @@ export interface Hotel {
   id: string; // Or number
   // other hotel fields...
 }
+
+export interface Category {
+  id: any;
+  name: string;
+  menuId: string;
+}

@@ -12,6 +12,7 @@ interface CreateMenuModalProps {
   setNewMenuName: (value: string) => void;
   onSubmit: () => void;
   isSubmitting: boolean;
+  isEditMode?: boolean;
 }
 
 export default function CreateMenuModal({
@@ -21,12 +22,17 @@ export default function CreateMenuModal({
   setNewMenuName,
   onSubmit,
   isSubmitting,
+  isEditMode,
 }: CreateMenuModalProps) {
   return (
     <Modal
       opened={opened}
       onClose={onClose}
-      title="Create New Menu"
+      title={
+        isEditMode
+          ? "Update Menu"
+          : "Create New Menu"
+      }
       centered
     >
       <TextInput
@@ -42,7 +48,9 @@ export default function CreateMenuModal({
         onClick={onSubmit}
         loading={isSubmitting}
       >
-        Create Menu
+        {isEditMode
+          ? "Update Menu"
+          : "Create Menu"}
       </Button>
     </Modal>
   );

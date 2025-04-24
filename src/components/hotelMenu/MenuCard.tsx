@@ -6,7 +6,11 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { IconToolsKitchen2 } from "@tabler/icons-react";
+import {
+  IconToolsKitchen2,
+  IconPencil,
+  IconTrash,
+} from "@tabler/icons-react";
 import { Menu } from "../../interface"; // Replace with your actual types
 
 interface Props {
@@ -15,6 +19,8 @@ interface Props {
   setActiveMenu: (menu: Menu) => void;
   onPublish: () => void;
   isSubmitting: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
 const MenuCard = ({
@@ -23,6 +29,8 @@ const MenuCard = ({
   setActiveMenu,
   onPublish,
   isSubmitting,
+  onEdit,
+  onDelete,
 }: Props) => (
   <Card
     shadow="sm"
@@ -95,6 +103,16 @@ const MenuCard = ({
             Preview
           </Button>
         )}
+        <IconPencil
+          color="blue"
+          className="cursor-pointer"
+          onClick={onEdit}
+        />
+        <IconTrash
+          color="red"
+          className="cursor-pointer"
+          onClick={onDelete}
+        />
       </Group>
     </Group>
   </Card>

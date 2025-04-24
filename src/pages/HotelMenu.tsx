@@ -25,7 +25,9 @@ import {
   Box,
   Loader,
   FileButton,
-  FileInput, // Use Loader for specific loading states
+  FileInput,
+  ActionIcon,
+  Tooltip, // Use Loader for specific loading states
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -34,7 +36,10 @@ import {
   IconListDetails,
   IconToolsKitchen2,
   IconPhoto,
-  IconCheck, // Added for notifications
+  IconCheck,
+  IconPencil,
+  IconTrash,
+  IconX, // Added for notifications
 } from "@tabler/icons-react";
 import {
   createMenu,
@@ -43,7 +48,12 @@ import {
   getMenu,
   getCategoryByMenu,
   addMenuItem,
-  getMenuItems, // Import the service to fetch items
+  getMenuItems,
+  deleteMenu,
+  updateCategory,
+  deleteCategory,
+  deleteMenuItemService,
+  updateMenuItemService, // Import the service to fetch items
 } from "../service/menuService"; // Assuming menuService exports getMenuItems
 import { getHotelByUser } from "../service/hotelService";
 import { getProfileInfo } from "../service/userService";
@@ -53,6 +63,7 @@ import {
   MenuCategory,
   Profile,
   MenuItem,
+  Category,
 } from "../interface";
 import AddItemModal from "../components/hotelMenu/AddItemModal";
 import CreateMenuModal from "../components/hotelMenu/CreateMenuModal";
@@ -60,6 +71,11 @@ import MenuCard from "../components/hotelMenu/MenuCard";
 import MenuHeader from "../components/hotelMenu/MenuHeader";
 import EmptyMenuNotice from "../components/hotelMenu/EmptyMenuNotice";
 import MenuItemsGrid from "../components/hotelMenu/MenuItemsGrid";
+import DeleteMenuModal from "../components/hotelMenu/DeleteMenuModal";
+import EditCategoryModal from "../components/hotelMenu/EditCategoryModal";
+import DeleteCategoryModal from "../components/hotelMenu/DeleteCategoryModal";
+import DeleteMenuItemModal from "../components/hotelMenu/DeleteMenuItemModal";
+import EditMenuItemModal from "../components/hotelMenu/EditMenuItemModal";
 // Optional: Add notifications for better UX
 // import { notifications } from '@mantine/notifications';
 
@@ -106,11 +122,51 @@ const MenuManager: React.FC = () => {
       close: closeMenuModal,
     },
   ] = useDisclosure(false);
+
+  const [
+    deleteModalOpened,
+    {
+      open: openDeleteModal,
+      close: closeDeleteModal,
+    },
+  ] = useDisclosure(false);
+
+  const [
+    deleteCategoryModalOpened,
+    {
+      open: openCategoryDeleteModal,
+      close: closeCategoryDeleteModal,
+    },
+  ] = useDisclosure(false);
+
   const [
     itemModalOpened,
     {
       open: openItemModal,
       close: closeItemModal,
+    },
+  ] = useDisclosure(false);
+
+  const [
+    categoryModalOpened,
+    {
+      open: openCategoryModal,
+      close: closeCategoryModal,
+    },
+  ] = useDisclosure(false);
+
+  const [
+    deleteItemModalOpened,
+    {
+      open: openDeleteItemModal,
+      close: closeDeleteItemModal,
+    },
+  ] = useDisclosure(false);
+  const [
+    editItemModalOpened,
+    {
+      open: openEditItemModal,
+      close: closeEditItemModal,
     },
   ] = useDisclosure(false);
 
@@ -136,7 +192,23 @@ const MenuManager: React.FC = () => {
   const [base64Image, setBase64Image] = useState<
     string | null
   >(null);
+  const [editingMenu, setEditingMenu] =
+    useState<Menu | null>(null);
+  const [deletingMenu, setDeletingMenu] =
+    useState<Menu | null>(null);
+  const [editingCategory, setEditingCategory] =
+    useState<Category | null>(null);
+  const [newCategoryName, setNewCategoryName] =
+    useState("");
+  const [deletingCategory, setDeletingCategory] =
+    useState<Category | null>(null);
+  const [itemEditMode, setItemEditMode] =
+    useState(false);
 
+  const [itemToDelete, setItemToDelete] =
+    useState<MenuItem | null>(null);
+  const [itemToEdit, setItemToEdit] =
+    useState<MenuItem | null>(null);
   // --- Data Fetching ---
 
   // Fetch Profile and Hotel ID (runs once)
@@ -291,28 +363,53 @@ const MenuManager: React.FC = () => {
 
   // --- Action Handlers (Mostly unchanged, ensure IDs are passed correctly) ---
 
-  const handleAddMenu = async () => {
+  const handleAddOrUpdateMenu = async () => {
     if (!newMenuName.trim() || !hotelId) return;
     setIsSubmitting(true);
-    try {
-      const newMenuPayload = {
-        title: newMenuName,
-        isPublished: false,
-        hotelId: hotelId,
-      };
-      await createMenu(newMenuPayload);
-      console.log(newMenuPayload);
 
+    try {
+      if (editingMenu) {
+        // Edit existing menu
+        const updatedMenu = {
+          ...editingMenu,
+          title: newMenuName,
+        };
+        await updateMenu(
+          editingMenu.id,
+          updatedMenu
+        );
+        notifications.show({
+          title: "Menu Updated",
+          message: "Menu updated successfully.",
+          color: "green",
+        });
+      } else {
+        // Create new menu
+        const newMenuPayload = {
+          title: newMenuName,
+          isPublished: false,
+          hotelId: hotelId,
+        };
+        await createMenu(newMenuPayload);
+        notifications.show({
+          title: "Menu Created",
+          message: "Menu created successfully.",
+          color: "green",
+        });
+      }
+
+      // Clear state and refresh
       setNewMenuName("");
+      setEditingMenu(null);
       closeMenuModal();
-      await fetchMenus(); // Refetch menus list
-      // Show success notification
+      await fetchMenus();
     } catch (error) {
-      console.error(
-        "Error creating menu:",
-        error
-      );
-      // Show error notification
+      console.error("Error saving menu:", error);
+      notifications.show({
+        title: "Error",
+        message: "Failed to save menu.",
+        color: "red",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -459,15 +556,197 @@ const MenuManager: React.FC = () => {
     }
   };
 
-  // --- Render Logic ---
-
-  // Render function remains the same, takes items array
-  const renderMenuItems = (items: MenuItem[]) => {
-    <MenuItemsGrid
-      items={items}
-      isLoading={isItemLoading}
-    />;
+  const handleOnDelete = async () => {
+    try {
+      await deleteMenu(deletingMenu?.id);
+      notifications.show({
+        title: "Menu Deleted",
+        message: "Menu deleted successfully.",
+        color: "green",
+      });
+    } catch (error) {
+      console.error("Error saving menu:", error);
+      notifications.show({
+        title: "Error",
+        message: "Failed to delete menu.",
+        color: "red",
+      });
+    }
+    setDeletingMenu(null);
+    closeDeleteModal();
+    await fetchMenus();
   };
+
+  const handleEditMenu = (menu: Menu) => {
+    setEditingMenu(menu);
+    setNewMenuName(menu.title); // Prefill the modal input
+    openMenuModal();
+  };
+
+  const handleDeleteMenu = (menu: Menu) => {
+    setDeletingMenu(menu);
+    openDeleteModal();
+  };
+
+  const handleEditCategory = (category: any) => {
+    setEditingCategory(category);
+    setNewCategoryName(category.name);
+    openCategoryModal();
+  };
+
+  const handleOnDeleteCategory = async () => {
+    try {
+      await deleteCategory(deletingCategory?.id);
+      notifications.show({
+        title: "Deleted",
+        message: `Category ${deleteCategory.name} Deleted Successfully`,
+        color: "green",
+      });
+    } catch (error) {
+      notifications.show({
+        title: "Error",
+        message: "Failed to delete Category",
+        color: "red",
+      });
+    }
+    setDeletingCategory(null);
+    closeCategoryDeleteModal();
+    await fetchCategoriesForActiveMenu();
+  };
+
+  const handleDeleteCateogry = (
+    category: Category
+  ) => {
+    setDeletingCategory(category);
+    openCategoryDeleteModal();
+  };
+
+  const handleOnCategoryEdit = async () => {
+    try {
+      const updatedCategory = {
+        ...editingCategory,
+        name: newCategoryName,
+      };
+      await updateCategory(
+        editingCategory?.id,
+        updatedCategory
+      );
+      notifications.show({
+        title: "Category Updated",
+        message: "Category updated successfully.",
+        color: "green",
+      });
+    } catch (error) {
+      notifications.show({
+        title: "Error",
+        message: "Failed to change Category Name",
+        color: "red",
+      });
+    }
+    setNewCategoryName("");
+    setEditingCategory(null);
+    closeCategoryModal();
+    await fetchCategoriesForActiveMenu();
+  };
+
+  const handleDeleteMenuItem = (
+    item: MenuItem
+  ) => {
+    setItemToDelete(item);
+    openDeleteItemModal();
+  };
+
+  const handleEditMenuItem = (item: MenuItem) => {
+    setItemToEdit(item);
+    setItemName(item.name);
+    setItemDescription(item.description || "");
+    setItemPrice(item.price);
+    setBase64Image(item.itemImage || null);
+    openEditItemModal();
+  };
+
+  const handleOnDeleteItem = async (
+    itemId: string | number
+  ) => {
+    setIsSubmitting(true);
+    try {
+      await deleteMenuItemService(itemId); // Assuming you have a deleteMenuItem service
+      notifications.show({
+        title: "Item Deleted",
+        message:
+          "Menu item deleted successfully.",
+        color: "green",
+      });
+      await fetchItemsForActiveTab(); // Refresh items in the current tab
+    } catch (error) {
+      console.error(
+        "Error deleting menu item:",
+        error
+      );
+      notifications.show({
+        title: "Error",
+        message: "Failed to delete menu item.",
+        color: "red",
+      });
+    } finally {
+      setIsSubmitting(false);
+      closeDeleteItemModal();
+      setItemToDelete(null);
+    }
+  };
+
+  const handleOnEditItemSubmit = async () => {
+    if (!itemToEdit) return; // Ensure we have an item to edit
+
+    setIsSubmitting(true);
+    try {
+      const base64Data =
+        base64Image?.split(",")[1];
+      const updatedItem: Omit<MenuItem, "id"> & {
+        id: string | number;
+      } = {
+        id: itemToEdit.id,
+        name: itemName,
+        description: itemDescription,
+        price:
+          itemPrice !== null
+            ? Number(itemPrice)
+            : 0,
+        menuId: itemToEdit.menuId, // Keep original
+        categoryId: itemToEdit.categoryId, // Keep original
+        itemImage: base64Data,
+        // You might need to handle itemImageBytes if you're storing both
+      };
+      await updateMenuItemService(
+        updatedItem.id,
+        updatedItem
+      );
+      notifications.show({
+        title: "Item Updated",
+        message:
+          "Menu item updated successfully.",
+        color: "green",
+      });
+      await fetchItemsForActiveTab();
+    } catch (error) {
+      console.error(
+        "Error updating menu item:",
+        error
+      );
+      notifications.show({
+        title: "Error",
+        message: "Failed to update menu item.",
+        color: "red",
+      });
+    } finally {
+      setIsSubmitting(false);
+      closeEditItemModal();
+      setItemToEdit(null);
+      setBase64Image(null);
+    }
+  };
+
+  // --- Render Logic ---
 
   return (
     <Container
@@ -522,6 +801,12 @@ const MenuManager: React.FC = () => {
                     handlePublish(menu)
                   }
                   isSubmitting={isSubmitting}
+                  onDelete={() => {
+                    handleDeleteMenu(menu);
+                  }}
+                  onEdit={() =>
+                    handleEditMenu(menu)
+                  }
                 />
               ))}
             </Stack>
@@ -537,6 +822,25 @@ const MenuManager: React.FC = () => {
             withBorder
             pos="relative"
           >
+            <div className="flex justify-end">
+              <ActionIcon
+                variant="light"
+                color="red"
+                radius="xl"
+                size="lg"
+                onClick={() =>
+                  setActiveMenu(null)
+                }
+                className="transition-all hover:scale-110"
+              >
+                <Tooltip
+                  label="Close"
+                  withArrow
+                >
+                  <IconX size={20} />
+                </Tooltip>
+              </ActionIcon>
+            </div>
             {/* Overlay for category loading */}
             <LoadingOverlay
               visible={isCategoryLoading}
@@ -648,24 +952,59 @@ const MenuManager: React.FC = () => {
                           <Group justify="flex-end">
                             {" "}
                             {/* Button now just on the right */}
-                            <Button
-                              leftSection={
-                                <IconPlus
-                                  size={16}
-                                />
-                              }
-                              size="xs"
-                              variant="light"
-                              // Pass the actual category ID of this panel
-                              onClick={() =>
-                                handleOpenAddItemModal(
-                                  String(cat.id)
-                                )
-                              }
-                            >
-                              Add Item to{" "}
-                              {cat.name}
-                            </Button>
+                            <div className="flex gap-5">
+                              <Button
+                                leftSection={
+                                  <IconPlus
+                                    size={16}
+                                  />
+                                }
+                                size="xs"
+                                variant="light"
+                                // Pass the actual category ID of this panel
+                                onClick={() =>
+                                  handleOpenAddItemModal(
+                                    String(cat.id)
+                                  )
+                                }
+                              >
+                                Add Item to{" "}
+                                {cat.name}
+                              </Button>
+                              <Button
+                                size="xs"
+                                variant="light"
+                                leftSection={
+                                  <IconPencil
+                                    size={16}
+                                  />
+                                }
+                                onClick={() =>
+                                  handleEditCategory(
+                                    cat
+                                  )
+                                }
+                              >
+                                Edit {cat.name}
+                              </Button>
+                              <Button
+                                size="xs"
+                                variant="filled"
+                                color="red"
+                                leftSection={
+                                  <IconTrash
+                                    size={16}
+                                  />
+                                }
+                                onClick={() =>
+                                  handleDeleteCateogry(
+                                    cat
+                                  )
+                                }
+                              >
+                                Delete {cat.name}
+                              </Button>
+                            </div>
                           </Group>
 
                           <MenuItemsGrid
@@ -675,6 +1014,12 @@ const MenuManager: React.FC = () => {
                             }
                             isLoading={
                               isItemLoading
+                            }
+                            onDelete={
+                              handleDeleteMenuItem
+                            }
+                            onEdit={
+                              handleEditMenuItem
                             }
                           />
                         </Stack>
@@ -690,13 +1035,82 @@ const MenuManager: React.FC = () => {
 
       {/* --- Modals (Unchanged, ensure IDs are handled correctly) --- */}
 
+      <EditCategoryModal
+        opened={categoryModalOpened}
+        onClose={() => {
+          closeCategoryModal();
+          setEditingCategory(null);
+          setNewCategoryName("");
+        }}
+        categoryName={newCategoryName}
+        setCategoryName={setNewCategoryName}
+        onSubmit={handleOnCategoryEdit}
+        isSubmitting={isSubmitting}
+      />
+
       <CreateMenuModal
         opened={menuModalOpened}
-        onClose={closeMenuModal}
+        onClose={() => {
+          closeMenuModal();
+          setEditingMenu(null);
+          setNewMenuName("");
+        }}
         newMenuName={newMenuName}
         setNewMenuName={setNewMenuName}
-        onSubmit={handleAddMenu}
+        onSubmit={handleAddOrUpdateMenu}
         isSubmitting={isSubmitting}
+        isEditMode={!!editingMenu}
+      />
+
+      <DeleteMenuModal
+        opened={deleteModalOpened}
+        onClose={() => {
+          closeDeleteModal();
+          setDeletingMenu(null);
+        }}
+        onDelete={handleOnDelete}
+        isSubmitting={isSubmitting}
+      />
+
+      <DeleteCategoryModal
+        opened={deleteCategoryModalOpened}
+        onClose={() => {
+          closeCategoryDeleteModal();
+          setDeletingCategory(null);
+        }}
+        onDelete={handleOnDeleteCategory}
+        isSubmitting={isSubmitting}
+      />
+
+      <DeleteMenuItemModal
+        opened={deleteItemModalOpened}
+        onClose={closeDeleteItemModal}
+        onDelete={handleOnDeleteItem}
+        itemToDelete={itemToDelete}
+        isSubmitting={isSubmitting}
+      />
+
+      <EditMenuItemModal
+        opened={editItemModalOpened}
+        onClose={() => {
+          closeEditItemModal();
+          setItemToEdit(null);
+          setBase64Image(null);
+          setItemName("");
+          setItemDescription("");
+          setItemPrice(null);
+        }}
+        onSubmit={handleOnEditItemSubmit}
+        isSubmitting={isSubmitting}
+        itemName={itemName}
+        setItemName={setItemName}
+        itemDescription={itemDescription}
+        setItemDescription={setItemDescription}
+        itemPrice={itemPrice}
+        setItemPrice={setItemPrice}
+        onFileChange={handleFileChange}
+        base64Image={base64Image}
+        initialItem={itemToEdit} // Pass the item being edited
       />
 
       <AddItemModal
