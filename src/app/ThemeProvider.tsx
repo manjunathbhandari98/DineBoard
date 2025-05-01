@@ -8,10 +8,14 @@ import {
 import { Notifications } from "@mantine/notifications";
 import {
   useState,
+  useEffect,
   createContext,
   useContext,
 } from "react";
-
+import { getSettings } from "../service/settingService";
+import { useSelector } from "react-redux";
+import { getHotelByUser } from "../service/hotelService";
+import { getProfileInfo } from "../service/userService";
 // Define the context type
 type ThemeContextType = {
   colorScheme: "light" | "dark";
@@ -19,7 +23,6 @@ type ThemeContextType = {
     value?: "light" | "dark"
   ) => void;
 };
-
 // Create the context
 const ThemeContext = createContext<
   ThemeContextType | undefined
@@ -53,6 +56,59 @@ const ThemeProvider = ({
           ? "dark"
           : "light")
     );
+
+  const [hotel, setHotel] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+
+  // 1. Fetch user
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await getProfileInfo();
+      setUser(userData);
+    };
+    fetchUser();
+  }, []);
+
+  // 2. Fetch hotel after user is loaded
+  useEffect(() => {
+    if (!user?.id) return;
+    const fetchHotel = async () => {
+      const hotelData = await getHotelByUser(
+        user.id
+      );
+      setHotel(hotelData);
+    };
+    fetchHotel();
+  }, [user?.id]);
+
+  // 👇 Automatically fetch settings and apply theme
+  useEffect(() => {
+    const fetchSettingsAndApplyTheme =
+      async () => {
+        try {
+          // or however you store hotel/user id
+
+          if (!hotel?.id) return;
+
+          const settings = await getSettings(
+            hotel?.id
+          );
+
+          if (settings.darkModeEnabled) {
+            setColorScheme("dark");
+          } else {
+            setColorScheme("light");
+          }
+        } catch (error) {
+          console.error(
+            "Error fetching settings for theme:",
+            error
+          );
+        }
+      };
+
+    fetchSettingsAndApplyTheme();
+  }, [hotel?.id]); // Run only once on app load
 
   const customTheme = createTheme({
     primaryColor: "redTheme",

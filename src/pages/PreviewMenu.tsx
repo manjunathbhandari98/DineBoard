@@ -1,4 +1,7 @@
-import React from "react";
+import React, {
+  useEffect,
+  useState,
+} from "react";
 import {
   Card,
   Grid,
@@ -7,6 +10,12 @@ import {
   Text,
   Title,
 } from "@mantine/core";
+import { useParams } from "react-router-dom";
+import {
+  getCategoryByMenu,
+  getMenuById,
+  getMenuItems,
+} from "../service/menuService";
 
 interface MenuItem {
   id: number;
@@ -28,20 +37,64 @@ interface PreviewMenuProps {
   menuItems: MenuItem[];
 }
 
-const categories = [
-  "Starters",
-  "Main Course",
-  "Desserts",
-  "Beverages",
-];
-
-const PreviewMenu: React.FC<PreviewMenuProps> = ({
-  menus,
-  menuItems,
-}) => {
+const PreviewMenu: React.FC<
+  PreviewMenuProps
+> = () => {
+  const { id } = useParams<{ id: string }>();
+  const [menus, setMenus] = useState([]);
+  const [menuItems, setMenuItems] = useState<
+    MenuItem[]
+  >([]);
+  const [categories, setCategories] = useState<
+    string[]
+  >([]);
+  const [categoryId, setCategoryId] =
+    useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<
+    string | null
+  >(null);
   const publishedMenus = menus.filter(
-    (menu) => menu.published
+    (menu: any) => menu?.isPublished
   );
+
+  useEffect(() => {
+    const fetchMenu = async () => {
+      if (id) {
+        setLoading(true);
+        const response = await getMenuById(id);
+        setMenus(response);
+      } else {
+        setError("No menu ID provided.");
+        setLoading(false);
+      }
+    };
+    fetchMenu();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      if (id) {
+        setLoading(true);
+        const response = await getMenuItems(id);
+        setMenuItems(response);
+      } else {
+        setError("No menu ID provided.");
+        setLoading(false);
+      }
+    };
+    fetchMenuItems();
+  }, [categoryId, id, menus]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const response = await getCategoryByMenu(
+        id
+      );
+      setCategories(response);
+    };
+    fetchCategories();
+  }, [id]);
 
   return (
     <div className="p-6">
@@ -57,7 +110,7 @@ const PreviewMenu: React.FC<PreviewMenuProps> = ({
           No published menus to preview.
         </Text>
       ) : (
-        publishedMenus.map((menu) => (
+        publishedMenus.map((menu: any) => (
           <div
             key={menu.name}
             className="mb-12"
@@ -70,10 +123,13 @@ const PreviewMenu: React.FC<PreviewMenuProps> = ({
             </Title>
             <Tabs defaultValue={categories[0]}>
               <Tabs.List>
-                {categories.map((cat) => (
+                {categories.map((cat: any) => (
                   <Tabs.Tab
                     key={cat}
                     value={cat}
+                    onClick={() =>
+                      setCategoryId(cat.id)
+                    }
                   >
                     {cat}
                   </Tabs.Tab>

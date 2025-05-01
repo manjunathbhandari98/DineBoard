@@ -9,6 +9,7 @@ import {
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Menu } from "@mantine/core";
+import { useThemeContext } from "../app/ThemeProvider";
 
 const NavLinks = ({
   isLoggedIn,
@@ -26,8 +27,12 @@ const NavLinks = ({
     setMobileFeatureOpen,
   ] = useState(false);
 
+  const { colorScheme } = useThemeContext();
+
   const commonClasses = mobile
     ? "block text-lg py-2"
+    : colorScheme === "dark"
+    ? "text-gray-300 hover:text-white"
     : "text-gray-700 hover:text-gray-900";
 
   return (
@@ -45,7 +50,11 @@ const NavLinks = ({
             {mobile ? (
               <>
                 <div
-                  className="flex items-center justify-between cursor-pointer text-lg py-2"
+                  className={`flex items-center justify-between cursor-pointer text-lg py-2 ${
+                    colorScheme === "dark"
+                      ? "bg-[#040611] text-white"
+                      : "bg-white text-black"
+                  }`}
                   onClick={() =>
                     setMobileFeatureOpen(
                       !mobileFeatureOpen
@@ -64,28 +73,24 @@ const NavLinks = ({
                   <div className="ml-4 flex flex-col gap-3 mb-4">
                     <NavLink
                       to="/features/custom-dashboard"
-                      className="text-gray-700"
                       onClick={onClose}
                     >
                       Customizable Dashboard
                     </NavLink>
                     <NavLink
                       to="/features/qr-menus"
-                      className="text-gray-700"
                       onClick={onClose}
                     >
                       Instant QR Menu Generator
                     </NavLink>
                     <NavLink
                       to="/features/order-tracking"
-                      className="text-gray-700"
                       onClick={onClose}
                     >
                       Real-time Order Tracking
                     </NavLink>
                     <NavLink
                       to="/features/menu-management"
-                      className="text-gray-700"
                       onClick={onClose}
                     >
                       Easy Menu Management

@@ -8,21 +8,22 @@ import RegisterPage from "../components/auth/RegisterPage";
 
 const AuthPage = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // For navigation after login/register
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
 
   useEffect(() => {
-    const params = new URLSearchParams(
+    const mode = new URLSearchParams(
       location.search
-    );
-    const mode = params.get("mode");
+    ).get("mode");
+    setIsLogin(mode !== "register"); // Defaults to login
+  }, [location.search]);
 
-    if (mode === "register") {
-      setIsLogin(false);
-    } else {
-      setIsLogin(true);
-    }
-  }, [location]);
+  const handleToggle = () => {
+    const newMode = isLogin
+      ? "register"
+      : "login";
+    navigate(`/auth?mode=${newMode}`);
+  };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
@@ -40,7 +41,7 @@ const AuthPage = () => {
         <div className="flex justify-center mt-4">
           <button
             className="text-blue-500"
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={handleToggle}
           >
             {isLogin ? (
               <>

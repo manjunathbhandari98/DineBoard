@@ -27,14 +27,14 @@ const steps = [
 
 const CustomerGuide = () => {
   return (
-    <section className="bg-white min-h-screen text-gray-800 px-6 py-20 font-sans">
+    <section className=" min-h-screen  px-6 py-20 font-sans">
       <div className="max-w-7xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-16">
         {/* Left Content */}
         <div className="flex-1">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 ">
             How Customers Use the Menu
           </h2>
-          <p className="text-gray-600 mb-8 text-base">
+          <p className=" mb-8 text-base">
             It’s quick, seamless, and hygienic.
             Here’s how your customers interact
             with your digital QR menu:
@@ -65,10 +65,14 @@ const CustomerGuide = () => {
         </div>
 
         {/* Right Image Placeholder */}
-        <div className="flex-1 w-full h-80 bg-gray-100 rounded-2xl shadow-inner flex items-center justify-center">
+        <div className="flex-1 w-full h-80  rounded-2xl shadow-inner flex items-center justify-center">
           {/* Replace with your actual image */}
-          <span className="text-gray-400 text-sm">
-            <img src="/banner-1.jpeg" alt="" className="rounded-xl"/>
+          <span className="text-sm">
+            <img
+              src="/banner-1.jpeg"
+              alt=""
+              className="rounded-xl"
+            />
           </span>
         </div>
       </div>

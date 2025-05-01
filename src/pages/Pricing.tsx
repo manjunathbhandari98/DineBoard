@@ -2,9 +2,12 @@ import { Card } from "@mantine/core";
 import Button from "../components/ui/Button";
 import { useEffect, useState } from "react";
 import { getAllPlans } from "../service/pricingService";
+import { useThemeContext } from "../app/ThemeProvider";
+import RazorpayButton from "../components/ui/RazorPayButton";
 
 const Pricing = () => {
   const [plans, setPlans] = useState([]);
+  const { colorScheme } = useThemeContext();
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -20,11 +23,11 @@ const Pricing = () => {
 
   return (
     <section
-      className="bg-white py-20 px-4 md:px-12"
+      className=" py-20 px-4 md:px-12"
       id="pricing"
     >
       <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold text-gray-800 mb-2">
+        <h2 className="text-4xl font-bold mb-2">
           Pricing
         </h2>
         <p className="text-gray-500">
@@ -47,7 +50,13 @@ const Pricing = () => {
             }`}
           >
             <div className="flex flex-col h-full">
-              <h3 className="text-2xl font-semibold text-gray-800">
+              <h3
+                className={`text-2xl font-semibold ${
+                  colorScheme === "dark"
+                    ? "text-gray-200"
+                    : "text-gray-800"
+                } `}
+              >
                 {plan.name}
               </h3>
               <p className="text-3xl font-bold text-[#f43f5e] mt-4">
@@ -64,7 +73,11 @@ const Pricing = () => {
                   ) => (
                     <li
                       key={index}
-                      className="text-gray-700 flex items-start"
+                      className={` ${
+                        colorScheme === "dark"
+                          ? "text-gray-300"
+                          : "text-gray-700"
+                      } flex items-start`}
                     >
                       <span className="text-[#f43f5e] mr-2">
                         ✔
@@ -74,21 +87,11 @@ const Pricing = () => {
                   )
                 )}
               </ul>
-              <Button
-                fullWidth
-                radius="xl"
-                size="md"
-                variant={
-                  plan.highlighted
-                    ? "filled"
-                    : "outline"
-                }
-                className="mt-auto"
-              >
-                {plan.highlighted
-                  ? "Get Started"
-                  : "Choose Plan"}
-              </Button>
+
+              <RazorpayButton
+                amount={plan.price}
+                highlighted={plan.highlighted}
+              />
             </div>
           </Card>
         ))}

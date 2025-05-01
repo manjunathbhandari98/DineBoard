@@ -8,12 +8,10 @@ import { AuthChecker } from "./context/AuthContext";
 
 const App = () => {
   return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <AuthChecker />
-        <AppContent />
-      </BrowserRouter>
-    </ThemeProvider>
+    <BrowserRouter>
+      <AuthChecker />
+      <AppContent />
+    </BrowserRouter>
   );
 };
 

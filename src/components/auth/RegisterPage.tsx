@@ -11,11 +11,14 @@ const RegisterPage = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] =
     useState("");
+  const [isLoading, setIsLoading] =
+    useState(false);
   const navigate = useNavigate(); // Use this for navigation after registration
 
   const handleRegister = async (
     e: React.FormEvent
   ) => {
+    setIsLoading(true);
     e.preventDefault();
     if (password !== confirmPassword) {
       alert("Passwords do not match.");
@@ -29,6 +32,8 @@ const RegisterPage = () => {
     };
     try {
       await registerUser(userData);
+      setIsLoading(false);
+      // --- Notification ---
       notifications.show({
         title: "Registered Successfully",
         message:
@@ -37,6 +42,8 @@ const RegisterPage = () => {
       });
       navigate("/auth?mode=login");
     } catch (error: any) {
+      setIsLoading(false);
+      // --- Notification ---
       notifications.show({
         title: "Failed To Register",
         message: error.message,

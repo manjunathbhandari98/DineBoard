@@ -17,12 +17,46 @@ export const createMenu = async (menu: any) => {
         },
       }
     );
+    if (response.data.success === false) {
+      throw {
+        errorMessage:
+          response.data.message ||
+          "Failed to Create Menu",
+      };
+    }
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      throw (
+        e.response?.data || {
+          errorMessage: "Can't Create New Menu",
+        }
+      );
+    }
+    throw {
+      errorMessage: "An unexpected error occured",
+    };
+  }
+};
+
+export const getMenu = async (hotelId: any) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/menus/hotel/${hotelId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${getToken(
+            "authToken"
+          )}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
     return response.data;
   } catch (e) {
     if (axios.isAxiosError(e)) {
       throw (
         e.response?.data || {
-          message: "Can't create Hotel",
+          message: "Menu Fetch Failed",
         }
       );
     }
@@ -32,10 +66,10 @@ export const createMenu = async (menu: any) => {
   }
 };
 
-export const getMenu = async (hotelId: any) => {
+export const getMenuById = async (id: any) => {
   try {
     const response = await axios.get(
-      `${BASE_URL}/menus/hotel/${hotelId}`,
+      `${BASE_URL}/menus/${id}`,
       {
         headers: {
           Authorization: `Bearer ${getToken(
@@ -116,6 +150,21 @@ export const deleteMenu = async (menuId: any) => {
     throw {
       message: "An unexpected error occurred",
     };
+  }
+};
+
+export const trackMenuView = async (
+  menuId: string
+) => {
+  try {
+    await axios.post(
+      `${BASE_URL}/menus/analytics/${menuId}/track-view`
+    );
+  } catch (error) {
+    console.error(
+      "Failed to increment menu views",
+      error
+    );
   }
 };
 
@@ -237,19 +286,27 @@ export const addMenuItem = async (
 };
 
 export const getMenuItems = async (
+  menuId: any
+) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/menu-item/menu/${menuId}`
+    );
+    return response.data;
+  } catch (error) {
+    throw {
+      message: "An Unexpected error occured",
+    };
+  }
+};
+
+export const getMenuItemsByCategory = async (
   menuId: any,
   categoryId: any
 ) => {
   try {
     const response = await axios.get(
-      `${BASE_URL}/menu-item/menu/${menuId}/${categoryId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
-        },
-      }
+      `${BASE_URL}/menu-item/menu/${menuId}/${categoryId}`
     );
     return response.data;
   } catch (error) {

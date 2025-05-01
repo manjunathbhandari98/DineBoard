@@ -27,7 +27,6 @@ const HotelProfile = () => {
   const [hotelId, setHotelId] = useState<
     string | null
   >(null);
-
   const [profile, setProfile] = useState<any>();
 
   useEffect(() => {
@@ -103,6 +102,7 @@ const HotelProfile = () => {
     try {
       if (hasHotel && hotelId) {
         await updateHotel(hotelId, hotelData);
+        // dispatch(addHotel(hotelData));
         notifications.show({
           title: "Hotel Updated",
           message: "Hotel updated successfully",
@@ -221,7 +221,7 @@ const HotelProfile = () => {
                   "data:image"
                 )
                   ? hotelData.logoUrl
-                  : `data:image/png;base64,${hotelData.logoUrl}`
+                  : `data:image/png;base64,${hotelData?.logoUrl}`
               }
               alt={hotelData.name}
               size={100}

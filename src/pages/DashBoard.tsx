@@ -11,10 +11,134 @@ import {
   IconEye,
   IconDeviceMobile,
 } from "@tabler/icons-react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import { getHotelByUser } from "../service/hotelService";
+import { getProfileInfo } from "../service/userService";
+import { setProfile } from "../slice/userSlice";
+import { Menu } from "../interface";
+import {
+  getCategoryByMenu,
+  getMenu,
+  getMenuItems,
+} from "../service/menuService";
 
 const Dashboard = () => {
+  const [hotelId, setHotelId] = useState();
+  const [menu, setMenu] = useState<any>(null);
+  const [category, setCategory] =
+    useState<any>(null);
+  const [totalViews, setTotalViews] = useState(0);
+  const [menuItems, setMenuItems] =
+    useState<any>(null);
+
+  const fetchProfileAndHotel =
+    useCallback(async () => {
+      try {
+        const profileData =
+          await getProfileInfo();
+        setProfile(profileData);
+        if (profileData?.id) {
+          const hotelData = await getHotelByUser(
+            profileData.id
+          );
+          setHotelId(hotelData.id);
+        } else {
+          console.error("Profile ID not found.");
+        }
+      } catch (error) {
+        console.error(
+          "Error fetching profile or hotel:",
+          error
+        );
+        // Show error notification
+      }
+    }, []);
+
+  const fetchMenus = useCallback(async () => {
+    if (!hotelId) return;
+    try {
+      const data = await getMenu(hotelId);
+      setMenu(data);
+      const total = data.reduce(
+        (acc: any, menu: any) =>
+          acc + (menu.viewCount || 0),
+        0
+      );
+      setTotalViews(total);
+    } catch (error) {
+      console.error(
+        "Error fetching menus:",
+        error
+      );
+    }
+  }, [hotelId]);
+
+  const fetchCategories =
+    useCallback(async () => {
+      if (!menu || !Array.isArray(menu)) return;
+
+      try {
+        const categoryPromises = menu.map(
+          (m: any) => getCategoryByMenu(m.id)
+        );
+        const allCategories = await Promise.all(
+          categoryPromises
+        );
+
+        // Flatten the array of arrays
+        const combined = allCategories.flat();
+        setCategory(combined);
+      } catch (error) {
+        console.error(
+          "Error fetching Categories:",
+          error
+        );
+      }
+    }, [menu]);
+
+  const fetchMenuItems = useCallback(async () => {
+    if (!menu || !Array.isArray(menu)) return;
+
+    try {
+      const itemPromises = menu.map((m: any) =>
+        getMenuItems(m.id)
+      );
+      const allItems = await Promise.all(
+        itemPromises
+      );
+
+      const combinedItems = allItems.flat();
+      setMenuItems(combinedItems);
+    } catch (error) {
+      console.error(
+        "Error fetching Menu Items:",
+        error
+      );
+    }
+  }, [menu]);
+
+  useEffect(() => {
+    fetchProfileAndHotel();
+  }, [fetchProfileAndHotel]);
+
+  useEffect(() => {
+    fetchMenus();
+  }, [fetchMenus]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  useEffect(() => {
+    fetchMenuItems();
+  }, [fetchMenuItems]);
+
   return (
-    <div className="p-6 space-y-8 bg-gray-100 min-h-screen">
+    <div className="p-6 space-y-8 min-h-screen">
       <Title order={2}>Dashboard</Title>
 
       {/* Metrics Cards */}
@@ -33,7 +157,9 @@ const Dashboard = () => {
               >
                 Total Menus
               </Text>
-              <Title order={3}>24</Title>
+              <Title order={3}>
+                {menu?.length}
+              </Title>
             </div>
             <IconMenu2
               size={32}
@@ -56,7 +182,9 @@ const Dashboard = () => {
               >
                 Total Categories
               </Text>
-              <Title order={3}>8</Title>
+              <Title order={3}>
+                {category?.length}
+              </Title>
             </div>
             <IconCategory
               size={32}
@@ -79,7 +207,9 @@ const Dashboard = () => {
               >
                 Views Today
               </Text>
-              <Title order={3}>142</Title>
+              <Title order={3}>
+                {totalViews}
+              </Title>
             </div>
             <IconEye
               size={32}
@@ -100,10 +230,10 @@ const Dashboard = () => {
                 size="sm"
                 color="dimmed"
               >
-                Device Views
+                Total Items
               </Text>
               <Title order={3}>
-                89 Mobile / 53 Desktop
+                {menuItems?.length}
               </Title>
             </div>
             <IconDeviceMobile
@@ -113,63 +243,6 @@ const Dashboard = () => {
           </div>
         </Card>
       </div>
-
-      {/* Menu Views Table */}
-      <Card
-        shadow="md"
-        padding="lg"
-        radius="md"
-        withBorder
-      >
-        <Title
-          order={4}
-          className="mb-4"
-        >
-          Recent Menu Views
-        </Title>
-        <Table
-          verticalSpacing="sm"
-          highlightOnHover
-        >
-          <thead>
-            <tr>
-              <th>Menu</th>
-              <th>Time</th>
-              <th>Date</th>
-              <th>Device</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              {
-                menu: "Breakfast Specials",
-                time: "10:15 AM",
-                date: "Apr 12, 2025",
-                device: "Mobile",
-              },
-              {
-                menu: "Dinner Combos",
-                time: "8:42 PM",
-                date: "Apr 11, 2025",
-                device: "Desktop",
-              },
-              {
-                menu: "Desserts",
-                time: "3:09 PM",
-                date: "Apr 11, 2025",
-                device: "Mobile",
-              },
-            ].map((v, i) => (
-              <tr key={i}>
-                <td>{v.menu}</td>
-                <td>{v.time}</td>
-                <td>{v.date}</td>
-                <td>{v.device}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      </Card>
     </div>
   );
 };

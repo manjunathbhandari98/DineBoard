@@ -8,8 +8,8 @@ const TryADemo = () => {
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
         {/* Left: QR Image */}
         <div className="flex justify-center">
-          <div className="bg-white border rounded-2xl shadow-lg p-6 w-full max-w-sm transform hover:scale-105 transition-transform duration-300 ease-in-out">
-            <div className="w-full aspect-square bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden">
+          <div className=" border rounded-2xl shadow-lg p-6 w-full max-w-sm transform hover:scale-105 transition-transform duration-300 ease-in-out">
+            <div className="w-full aspect-square  rounded-xl flex items-center justify-center overflow-hidden">
               {/* Replace this div with your actual QR image */}
               <img
                 src="/banner-2.jpeg"
@@ -22,10 +22,10 @@ const TryADemo = () => {
 
         {/* Right: Info */}
         <div>
-          <h2 className="text-4xl font-bold mb-6 text-gray-900">
+          <h2 className="text-4xl font-bold mb-6">
             Try a Demo Menu
           </h2>
-          <p className="text-lg text-gray-700 mb-8">
+          <p className="text-lg  mb-8">
             Scan the QR code to experience how
             smooth and fast digital menus can be.
             No downloads, no fuss—just instant
@@ -33,7 +33,7 @@ const TryADemo = () => {
             menu.
           </p>
 
-          <ul className="space-y-6 text-base text-gray-700 mb-6">
+          <ul className="space-y-6 text-base  mb-6">
             <li className="flex items-center gap-4">
               <span className="text-[#f43f5e] text-3xl">
                 ✔

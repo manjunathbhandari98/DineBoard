@@ -1,17 +1,13 @@
 import axios from "axios";
 import { getToken } from "./localStorageService";
-import { addHotel } from "../slice/hotelSlice";
 const BASE_URL = import.meta.env
   .VITE_REACT_APP_API_URL;
 
-export const createHotel = async (
-  hotelData: any,
-  ownerId: any
-) => {
+export const saveQRCode = async (qrData: any) => {
   try {
     const response = await axios.post(
-      `${BASE_URL}/hotels/${ownerId}`,
-      hotelData,
+      `${BASE_URL}/qrcodes`,
+      qrData,
       {
         headers: {
           Authorization: `Bearer ${getToken(
@@ -26,7 +22,7 @@ export const createHotel = async (
     if (axios.isAxiosError(e)) {
       throw (
         e.response?.data || {
-          message: "Can't create Hotel",
+          message: "Can't save QRCode",
         }
       );
     }
@@ -36,16 +32,17 @@ export const createHotel = async (
   }
 };
 
-export const getHotelByUser = async (
-  ownerId: any
-) => {
+export const getQRCodes = async () => {
   try {
-    const token = getToken("authToken");
     const response = await axios.get(
-      `${BASE_URL}/hotels/by-user/${ownerId}`,
+      `${BASE_URL}/qrcodes`,
+
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${getToken(
+            "authToken"
+          )}`,
+          "Content-Type": "application/json",
         },
       }
     );
@@ -54,7 +51,7 @@ export const getHotelByUser = async (
     if (axios.isAxiosError(e)) {
       throw (
         e.response?.data || {
-          message: "There's No Hotels",
+          message: "Can't get QRCodes",
         }
       );
     }
@@ -64,24 +61,25 @@ export const getHotelByUser = async (
   }
 };
 
-export const getHotelById = async (id: any) => {
+export const deleteQRCode = async (id: any) => {
   try {
-    const token = getToken("authToken");
-    const response = await axios.get(
-      `${BASE_URL}/hotels/${id}`,
+    const response = await axios.delete(
+      `${BASE_URL}/qrcodes/${id}`,
+
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${getToken(
+            "authToken"
+          )}`,
         },
       }
     );
-
     return response.data;
   } catch (e) {
     if (axios.isAxiosError(e)) {
       throw (
         e.response?.data || {
-          message: "There's No Hotels",
+          message: "Can't delete this QRCodes",
         }
       );
     }
@@ -91,28 +89,29 @@ export const getHotelById = async (id: any) => {
   }
 };
 
-export const updateHotel = async (
-  hotelId: any,
-  hotelData: any
+export const updateQRCodeLabel = async (
+  id: any,
+  data: any
 ) => {
   try {
-    const token = getToken("authToken");
     const response = await axios.put(
-      `${BASE_URL}/hotels/${hotelId}`,
-      hotelData,
+      `${BASE_URL}/qrcodes/${id}`,
+      data,
+
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${getToken(
+            "authToken"
+          )}`,
         },
       }
     );
-
     return response.data;
   } catch (e) {
     if (axios.isAxiosError(e)) {
       throw (
         e.response?.data || {
-          message: "There's No Hotels",
+          message: "Can't Edit this QRCodes",
         }
       );
     }

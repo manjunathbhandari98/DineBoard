@@ -3,62 +3,152 @@ import {
   Container,
   Title,
   Switch,
-  Select,
   Paper,
   Divider,
-  Group,
-  ColorInput,
 } from "@mantine/core";
-import Button from "../components/ui/Button";
 import { useThemeContext } from "../app/ThemeProvider";
+import {
+  getSettings,
+  saveSettings,
+} from "../service/settingService";
+import { getHotelByUser } from "../service/hotelService";
+import { getProfileInfo } from "../service/userService";
+import { useDispatch } from "react-redux";
+import { addHotel } from "../slice/hotelSlice";
+import { useNavigate } from "react-router-dom";
+import { Loader } from "lucide-react";
 
 const SettingsPage = () => {
   const { colorScheme, toggleColorScheme } =
-    useThemeContext(); // <-- use custom hook
+    useThemeContext();
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
 
   const [settings, setSettings] = useState({
-    notifications: true,
-    theme: "light",
-    defaultQrBorder: true,
-    defaultQrColor: "#000000",
-    whiteLabel: false,
-    language: "en",
-    timezone: "Asia/Kolkata",
+    enableNotification: true,
+    darkModeEnabled: false,
+    borderAroundQR: true,
+    showHotelName: true,
+    showDineBoardBranding: true,
   });
+  const navigate = useNavigate();
 
+  const [hotel, setHotel] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+
+  // 1. Fetch user
   useEffect(() => {
-    // Sync theme from context to local settings
-    setSettings((prev) => ({
-      ...prev,
-      theme: colorScheme,
-    }));
-  }, [colorScheme]);
+    const fetchUser = async () => {
+      const userData = await getProfileInfo();
+      setUser(userData);
+    };
+    fetchUser();
+  }, []);
 
-  const handleChange = (
+  // 2. Fetch hotel after user is loaded
+  useEffect(() => {
+    if (!user?.id) return;
+    const fetchHotel = async () => {
+      const hotelData = await getHotelByUser(
+        user.id
+      );
+      dispatch(addHotel(hotelData));
+      setHotel(hotelData);
+    };
+    fetchHotel();
+  }, [user?.id]);
+
+  // 3. Fetch settings after hotel is loaded
+  useEffect(() => {
+    if (!hotel?.id) return;
+    const fetchSettings = async () => {
+      const settingsData = await getSettings(
+        hotel.id
+      );
+      setSettings((prev) => ({
+        ...prev,
+        ...settingsData, // merge defaults + server settings
+        darkModeEnabled: colorScheme === "dark", // also sync dark mode here
+      }));
+      setLoading(false);
+    };
+    fetchSettings();
+  }, [hotel?.id, colorScheme]);
+
+  // 4. Sync dark mode separately if toggled manually
+  // useEffect(() => {
+  //   if (!hotel?.id) return;
+  //   const fetchSettings = async () => {
+  //     const settingsData = await getSettings(
+  //       hotel.id
+  //     );
+
+  //     if (
+  //       settingsData.darkModeEnabled &&
+  //       colorScheme !== "dark"
+  //     ) {
+  //       toggleColorScheme("dark");
+  //     }
+  //     if (
+  //       !settingsData.darkModeEnabled &&
+  //       colorScheme !== "light"
+  //     ) {
+  //       toggleColorScheme("light");
+  //     }
+
+  //     setSettings((prev) => ({
+  //       ...prev,
+  //       ...settingsData,
+  //     }));
+  //   };
+  //   fetchSettings();
+  // }, [hotel?.id]);
+
+  const handleChange = async (
     field: string,
-    value: any
+    value: boolean
   ) => {
-    if (field === "theme") {
-      toggleColorScheme(
-        value as "light" | "dark"
-      ); // <-- update context theme
+    if (
+      (field === "showHotelName" ||
+        field === "showDineBoardBranding") &&
+      user?.planId !== 3
+    ) {
+      navigate("/pricing");
+      return; // stop here
     }
 
-    setSettings((prev) => ({
-      ...prev,
+    const updatedSettings = {
+      ...settings,
       [field]: value,
-    }));
+    };
+
+    setSettings(updatedSettings);
+
+    if (field === "darkModeEnabled") {
+      toggleColorScheme(value ? "dark" : "light");
+    }
+
+    if (hotel?.id) {
+      await saveSettings({
+        hotelId: hotel.id,
+        ...updatedSettings,
+      });
+    }
   };
 
-  const handleSave = () => {
-    console.log("Settings saved:", settings);
-    // You can persist these settings if needed
-  };
-
-  const handleCancel = () => {
-    console.log("Changes canceled.");
-    // Optional: reset to previous state
-  };
+  if (loading) {
+    return (
+      <Container
+        size="sm"
+        py="xl"
+      >
+        <div className="flex flex-col gap-5 items-center justify-center min-h-[60vh]">
+          <Loader size={32} />
+          <Title size='xs'>Loading.... </Title>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container
@@ -81,27 +171,23 @@ const SettingsPage = () => {
       >
         <Switch
           label="Enable Notifications"
-          checked={settings.notifications}
+          checked={settings.enableNotification}
           onChange={(e) =>
             handleChange(
-              "notifications",
+              "enableNotification",
               e.currentTarget.checked
             )
           }
         />
 
-        <Select
-          label="Theme"
-          data={[
-            {
-              value: "light",
-              label: "Light Mode",
-            },
-            { value: "dark", label: "Dark Mode" },
-          ]}
-          value={settings.theme}
-          onChange={(val) =>
-            handleChange("theme", val)
+        <Switch
+          label="Dark Mode"
+          checked={settings.darkModeEnabled}
+          onChange={(e) =>
+            handleChange(
+              "darkModeEnabled",
+              e.currentTarget.checked
+            )
           }
         />
 
@@ -112,93 +198,43 @@ const SettingsPage = () => {
         />
 
         <Switch
-          label="Default Border Around QR Code"
-          checked={settings.defaultQrBorder}
+          label="Border Around QR Code"
+          checked={settings.borderAroundQR}
           onChange={(e) =>
             handleChange(
-              "defaultQrBorder",
+              "borderAroundQR",
               e.currentTarget.checked
             )
           }
         />
 
-        <ColorInput
-          label="Default QR Foreground Color"
-          value={settings.defaultQrColor}
-          onChange={(val) =>
-            handleChange("defaultQrColor", val)
-          }
-        />
-
         <Divider
-          label="App Preferences"
+          label="Hotel Branding Preferences"
           labelPosition="center"
           my="md"
         />
 
         <Switch
-          label="Enable White-label Branding"
-          checked={settings.whiteLabel}
+          label="Show Hotel Name on Menu"
+          checked={settings.showHotelName}
           onChange={(e) =>
             handleChange(
-              "whiteLabel",
+              "showHotelName",
               e.currentTarget.checked
             )
           }
-          description="Removes 'Developed by DineBoard' branding from public menu page"
         />
 
-        <Select
-          label="Preferred Language"
-          value={settings.language}
-          onChange={(val) =>
-            handleChange("language", val)
+        <Switch
+          label="Show DineBoard Branding"
+          checked={settings.showDineBoardBranding}
+          onChange={(e) =>
+            handleChange(
+              "showDineBoardBranding",
+              e.currentTarget.checked
+            )
           }
-          data={[
-            { value: "en", label: "English" },
-            { value: "hi", label: "Hindi" },
-            { value: "ta", label: "Tamil" },
-            { value: "mr", label: "Marathi" },
-          ]}
         />
-
-        <Select
-          label="Timezone"
-          value={settings.timezone}
-          onChange={(val) =>
-            handleChange("timezone", val)
-          }
-          data={[
-            {
-              value: "Asia/Kolkata",
-              label: "Asia/Kolkata (IST)",
-            },
-            {
-              value: "Asia/Dubai",
-              label: "Asia/Dubai (GST)",
-            },
-            { value: "UTC", label: "UTC" },
-          ]}
-        />
-
-        <Group
-          justify="center"
-          mt="xl"
-        >
-          <Button
-            color="teal"
-            onClick={handleSave}
-          >
-            Save Settings
-          </Button>
-          <Button
-            variant="outline"
-            color="gray"
-            onClick={handleCancel}
-          >
-            Cancel
-          </Button>
-        </Group>
       </Paper>
     </Container>
   );

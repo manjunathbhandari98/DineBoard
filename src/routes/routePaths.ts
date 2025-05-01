@@ -3,8 +3,9 @@ const RoutePaths = {
   PRICING: "/pricing",
   SUPPORT: "/support",
   ABOUT: "/about",
-  LOGIN: "/auth",
-  REGISTER: "/auth",
+  LOGIN: "/auth?mode=login",
+  REGISTER: "/auth?mode=register",
+  AUTH: "/auth",
   DASHBOARD: "/dashboard",
   MENUS: "/menus",
   QRCODES: "/qrcodes-setting",
@@ -13,7 +14,9 @@ const RoutePaths = {
   HOTELSETTINGS: "/hotel-settings",
   HOTELPROFILE: "/hotel-profile",
   SETTINGS: "/settings",
-  PREVIEWMENU: "/preview",
+  PREVIEWMENU: "/customer-menu",
+  PREVIEWMENU_WITH_ID: (id: string) =>
+    `/customer-menu/${id}`,
 };
 
 export default RoutePaths;

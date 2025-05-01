@@ -13,12 +13,11 @@ import {
 
 import Button from "../ui/Button";
 import {
+  Loader,
   PasswordInput,
   TextInput,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { parseJwt } from "../../service/auth";
-import { setToken } from "../../service/localStorageService";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -27,6 +26,8 @@ const LoginPage = () => {
     isPasswordVisible,
     setIsPasswordVisible,
   ] = useState(false); // Replaces useDisclosure
+  const [isLoading, setIsLoading] =
+    useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -39,7 +40,7 @@ const LoginPage = () => {
   ) => {
     e.preventDefault();
     // Consider adding basic client-side validation here if needed
-
+    setIsLoading(true);
     try {
       const userData = {
         email: email,
@@ -53,7 +54,7 @@ const LoginPage = () => {
       dispatch(setProfile(profile));
 
       // --- Notification ---
-
+      setIsLoading(false);
       notifications.show({
         title: "Login Successful",
         message: "Welcome Back",
@@ -62,6 +63,7 @@ const LoginPage = () => {
 
       navigate("/dashboard"); // Redirect to the dashboard
     } catch (error: any) {
+      setIsLoading(false);
       notifications.show({
         title: "Login Failed",
         // Try to display a more specific error message if available
@@ -120,7 +122,7 @@ const LoginPage = () => {
             variant="filled"
             fullWidth
           >
-            Login
+            {isLoading ? <Loader /> : "Login"}
           </Button>
         </div>
         {/* Forgot Password Link */}

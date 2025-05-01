@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NavLinks from "./NavLinks";
 import Sidebar from "./Sidebar";
 import {
@@ -11,21 +11,28 @@ import {
   Modal,
   Card,
   Group,
+  Avatar,
 } from "@mantine/core";
 import {
+  IconBuildingSkyscraper,
   IconCircleDottedLetterH,
   IconLogout,
   IconMenuDeep,
   IconPlanet,
   IconSettings,
 } from "@tabler/icons-react";
-import ProfileMenu from "./ProfileMenu";
 import {
   useSelector,
   useDispatch,
 } from "react-redux";
-import { removeUser } from "../slice/userSlice";
+import {
+  removeUser,
+  setProfile,
+} from "../slice/userSlice";
 import Button from "./ui/Button";
+import { useThemeContext } from "../app/ThemeProvider";
+import { getHotelByUser } from "../service/hotelService";
+import { getProfileInfo } from "../service/userService";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -33,14 +40,15 @@ const Header = () => {
   const user = useSelector(
     (state: any) => state.user.token
   );
-  const profile = useSelector(
-    (state: any) => state.user.profile
-  );
+  const { colorScheme } = useThemeContext();
   // const [user, setUser] = useState(false);
   const [sidebarOpen, setSidebarOpen] =
     useState(false);
   const [modalOpen, setModalOpen] =
     useState(false);
+  const [hotelData, setHotelData] =
+    useState<any>();
+  const [profile, setProfile] = useState<any>();
 
   const handleLogout = () => {
     dispatch(removeUser());
@@ -48,13 +56,56 @@ const Header = () => {
     navigate("/");
   };
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const response = await getProfileInfo();
+      setProfile(response);
+    };
+    fetchProfile();
+  }, []);
+
+  useEffect(() => {
+    if (!profile?.id) return; // wait until profile is loaded
+
+    const fetchHotelByUser = async (
+      userId: string
+    ) => {
+      try {
+        const response = await getHotelByUser(
+          userId
+        );
+        if (response) {
+          setHotelData(response);
+        }
+      } catch (error) {
+        console.error(
+          "Error fetching hotel:",
+          error
+        );
+      }
+    };
+
+    fetchHotelByUser(profile?.id);
+  }, [profile?.id]);
+
   return (
     <div className="h-full w-full">
-      <header className="flex items-center justify-between p-4 bg-white shadow-md relative z-50">
+      <header
+        className={`flex items-center justify-between p-4 ${
+          colorScheme === "dark"
+            ? "bg-[#040611] text-gray-200"
+            : "bg-white text-black"
+        } shadow-md relative z-50`}
+      >
         {/* Logo and Home Link */}
+
         <Link to="/">
           <img
-            src="/logo.png"
+            src={
+              colorScheme === "dark"
+                ? "/logo-light.png"
+                : "/logo.png"
+            }
             alt="Logo"
             width={200}
           />
@@ -66,10 +117,26 @@ const Header = () => {
           {user && (
             <Menu withArrow>
               <Menu.Target>
-                <ProfileMenu
-                  image="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png"
-                  name="Harriette Spoonlicker"
-                />
+                {hotelData?.logoUrl ? (
+                  <Avatar
+                    src={
+                      hotelData.logoUrl?.startsWith(
+                        "data:image"
+                      )
+                        ? hotelData?.logoUrl
+                        : `data:image/png;base64,${hotelData?.logoUrl}`
+                    }
+                    alt={hotelData.name}
+                    size={45}
+                    radius="xl"
+                    className="border-2 border-red-500 hover:border-gray-400 transition duration-300 cursor-pointer"
+                  />
+                ) : (
+                  <IconBuildingSkyscraper
+                    size={40}
+                    className="border-2 rounded-full p-1 border-red-500 hover:border-gray-400 transition duration-300 cursor-pointer"
+                  />
+                )}
               </Menu.Target>
               <Menu.Dropdown w={150}>
                 <Menu.Item

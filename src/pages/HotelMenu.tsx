@@ -5,27 +5,18 @@ import React, {
 } from "react";
 import {
   Button,
-  Card,
   Group,
   Text,
   TextInput,
   Title,
-  Modal,
   Tabs,
-  NumberInput,
   Container,
   Stack,
-  Badge,
   Paper,
-  SimpleGrid,
   LoadingOverlay,
   Alert,
-  Image,
-  Textarea,
   Box,
   Loader,
-  FileButton,
-  FileInput,
   ActionIcon,
   Tooltip, // Use Loader for specific loading states
 } from "@mantine/core";
@@ -33,10 +24,6 @@ import { useDisclosure } from "@mantine/hooks";
 import {
   IconPlus,
   IconAlertCircle,
-  IconListDetails,
-  IconToolsKitchen2,
-  IconPhoto,
-  IconCheck,
   IconPencil,
   IconTrash,
   IconX, // Added for notifications
@@ -53,7 +40,8 @@ import {
   updateCategory,
   deleteCategory,
   deleteMenuItemService,
-  updateMenuItemService, // Import the service to fetch items
+  updateMenuItemService,
+  getMenuItemsByCategory, // Import the service to fetch items
 } from "../service/menuService"; // Assuming menuService exports getMenuItems
 import { getHotelByUser } from "../service/hotelService";
 import { getProfileInfo } from "../service/userService";
@@ -242,36 +230,40 @@ const MenuManager: React.FC = () => {
   // Fetch Menus list (runs when hotelId changes)
   const fetchMenus = useCallback(async () => {
     if (!hotelId) return;
-    setIsInitialLoading(true); // Still part of initial load sequence
+    setIsInitialLoading(true);
     try {
       const data = await getMenu(hotelId);
       setMenus(data);
 
-      // If there's an active menu, refresh its data too
-      if (activeMenu) {
+      setActiveMenu((prevActiveMenu) => {
+        if (!prevActiveMenu) {
+          return null;
+        }
+
         const refreshedActiveMenu = data.find(
-          (m: Menu) => m.id === activeMenu.id
+          (m: Menu) => m.id === prevActiveMenu.id
         );
+
         if (!refreshedActiveMenu) {
-          setActiveMenu(null); // Clear active menu if it was deleted
           setCategories([]);
           setActiveCategoryItems([]);
           setActiveTabCategoryId(null);
+          return null;
         } else {
-          setActiveMenu(refreshedActiveMenu);
-          // Categories will be refetched by the other effect if activeMenu.id is stable
+          return refreshedActiveMenu;
         }
-      }
+      });
     } catch (error) {
       console.error(
         "Error fetching menus:",
         error
       );
-      // Show error notification
     } finally {
-      setIsInitialLoading(false); // Initial load ends here
+      setIsInitialLoading(false);
     }
-  }, [hotelId, activeMenu?.id]); // Include activeMenu.id to potentially refresh
+  }, [hotelId]); // ✅ Only depends on hotelId now
+
+  // Include activeMenu.id to potentially refresh
 
   // Fetch Categories for the Active Menu (runs when activeMenu changes)
   const fetchCategoriesForActiveMenu =
@@ -326,10 +318,11 @@ const MenuManager: React.FC = () => {
       setIsItemLoading(true);
       try {
         // Call the specific service to get items for the active category
-        const items = await getMenuItems(
-          activeMenu.id,
-          activeTabCategoryId
-        );
+        const items =
+          await getMenuItemsByCategory(
+            activeMenu.id,
+            activeTabCategoryId
+          );
         setActiveCategoryItems(items || []); // Ensure it's an array
       } catch (error) {
         console.error(
@@ -403,11 +396,12 @@ const MenuManager: React.FC = () => {
       setEditingMenu(null);
       closeMenuModal();
       await fetchMenus();
-    } catch (error) {
-      console.error("Error saving menu:", error);
+    } catch (error: any) {
       notifications.show({
         title: "Error",
-        message: "Failed to save menu.",
+        message:
+          error.errorMessage ||
+          "Failed to save menu.",
         color: "red",
       });
     } finally {
@@ -949,9 +943,10 @@ const MenuManager: React.FC = () => {
                         pt="lg"
                       >
                         <Stack gap="md">
-                          <Group justify="flex-end">
-                            {" "}
-                            {/* Button now just on the right */}
+                          <Group
+                            justify="flex-end"
+                            className="w-full"
+                          >
                             <div className="flex gap-5">
                               <Button
                                 leftSection={
@@ -961,16 +956,19 @@ const MenuManager: React.FC = () => {
                                 }
                                 size="xs"
                                 variant="light"
-                                // Pass the actual category ID of this panel
                                 onClick={() =>
                                   handleOpenAddItemModal(
                                     String(cat.id)
                                   )
                                 }
+                                className="w-full sm:w-auto"
                               >
-                                Add Item to{" "}
-                                {cat.name}
+                                <span className="hidden sm:inline">
+                                  Add Item to{" "}
+                                  {cat.name}
+                                </span>
                               </Button>
+
                               <Button
                                 size="xs"
                                 variant="light"
@@ -984,9 +982,13 @@ const MenuManager: React.FC = () => {
                                     cat
                                   )
                                 }
+                                className="w-full sm:w-auto"
                               >
-                                Edit {cat.name}
+                                <span className="hidden sm:inline">
+                                  Edit {cat.name}
+                                </span>
                               </Button>
+
                               <Button
                                 size="xs"
                                 variant="filled"
@@ -1001,8 +1003,12 @@ const MenuManager: React.FC = () => {
                                     cat
                                   )
                                 }
+                                className="w-full sm:w-auto"
                               >
-                                Delete {cat.name}
+                                <span className="hidden sm:inline">
+                                  Delete{" "}
+                                  {cat.name}
+                                </span>
                               </Button>
                             </div>
                           </Group>

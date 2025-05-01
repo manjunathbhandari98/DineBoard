@@ -1,13 +1,19 @@
 import { Link } from "react-router-dom";
+import { useThemeContext } from "../app/ThemeProvider";
 
 const Footer = () => {
+  const { colorScheme } = useThemeContext();
   return (
     <footer className="py-16 mt-16 border-t">
       <div className="max-w-6xl mx-auto px-4">
         {/* Logo Section */}
         <div className="flex justify-center mb-10">
           <img
-            src="/logo.png" // Replace with your logo path
+            src={
+              colorScheme === "dark"
+                ? "/logo-light.png"
+                : "/logo.png"
+            } // Replace with your logo path
             alt="Logo"
             className="w-52 h-auto"
           />
@@ -196,7 +202,8 @@ const Footer = () => {
         {/* Copyright */}
         <div className="mt-10 text-center text-sm text-gray-600">
           <p>
-            &copy; {new Date().getFullYear()} Dineboard. All Rights Reserved.
+            &copy; {new Date().getFullYear()}{" "}
+            Dineboard. All Rights Reserved.
           </p>
         </div>
       </div>
