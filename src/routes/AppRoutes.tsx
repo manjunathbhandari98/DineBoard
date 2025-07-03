@@ -1,15 +1,14 @@
 // src/routes/AppRoutes.tsx
-import React, { Suspense, lazy } from "react";
-import { Route, Routes } from "react-router-dom";
 import { Loader } from "@mantine/core";
-import RoutePaths from "./routePaths";
+import { Suspense, lazy } from "react";
+import { Route, Routes } from "react-router-dom";
 import HotelMenuPreview from "../components/customer/HotelMenuPreview";
 import HotelSettings from "../components/HotelSettings";
-import HotelProfile from "../pages/HotelProfile";
-import SettingsPage from "../pages/Settings";
 import useMenuRouteBlocker from "../hooks/useMenuRouteBlocker";
+import HotelProfile from "../pages/HotelProfile";
 import PrivateRoutes from "./PrivateRoutes";
 import PublicRoutes from "./PublicRoutes";
+import RoutePaths from "./routePaths";
 
 // Lazy-loaded pages
 const HomePage = lazy(
@@ -121,10 +120,7 @@ const AppRoutes = () => {
             path={RoutePaths.HOTELPROFILE}
             element={<HotelProfile />}
           />
-          <Route
-            path={RoutePaths.SETTINGS}
-            element={<SettingsPage />}
-          />
+        
         </Route>
       </Routes>
     </Suspense>

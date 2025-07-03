@@ -1,35 +1,25 @@
 import axios from "axios";
-import { getToken } from "./localStorageService";
 
-const BASE_URL = import.meta.env
-  .VITE_REACT_APP_API_URL;
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
-export const handlePayment = async (
-  amount: number
-) => {
-  try {
-    const response = await axios.post(
-      `${BASE_URL}/payment/create-order`,
-      { amount },
-      {
-        headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
-        },
-      }
-    );
-    return response.data;
-  } catch (e) {
-    if (axios.isAxiosError(e)) {
-      throw (
-        e.response?.data || {
-          message: "Payment Failed",
-        }
-      );
+export const createOrder = async (amount: number) => {
+  const res = await axios.post(
+    `${BASE_URL}/payment/create-order`,
+    { amount },
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+      },
     }
-    throw {
-      message: "An unexpected error occurred",
-    };
-  }
+  );
+  return res.data;
+};
+
+export const verifyOrder = async () => {
+  const res = await axios.post(`${BASE_URL}/payment/verify-test`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+    },
+  });
+  return res.data;
 };

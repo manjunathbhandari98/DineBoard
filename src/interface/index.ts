@@ -37,3 +37,10 @@ export interface Category {
   name: string;
   menuId: string;
 }
+
+export interface Plan {
+  id: any;
+  name: string;
+  description: string;
+  price: any;
+}

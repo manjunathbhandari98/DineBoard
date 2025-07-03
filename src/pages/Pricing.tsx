@@ -2,6 +2,7 @@ import { Card } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useThemeContext } from "../app/ThemeProvider";
 import { getHotelByUser, subscribePlan } from "../service/hotelService";
+import { createOrder } from "../service/paymentService";
 import { getAllPlans } from "../service/pricingService";
 import { getProfileInfo } from "../service/userService";
 
@@ -55,22 +56,73 @@ const Pricing = () => {
     fetchPlans();
   }, []);
 
-  // Subscribe logic
-  const handlePayment = async (planId: number) => {
-    if (!hotelId) {
-      alert("Hotel not found for this user.");
-      return;
-    }
-
-    try {
-      await subscribePlan(hotelId, planId);
-      alert("Successfully subscribed to plan!");
-    } catch (error) {
-      console.error("Error subscribing to plan:", error);
-      alert("Failed to subscribe to plan.");
-    }
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
   };
 
+  const handlePayment = async (planId: number, planPrice: any, planName: string) => {
+    if (!hotelId || !user) {
+      alert("User or Hotel not found.");
+      return;
+    }
+  
+    const razorpayLoaded = await loadRazorpayScript();
+    if (!razorpayLoaded) {
+      alert("Failed to load Razorpay. Try again later.");
+      return;
+    }
+  
+    try {
+      const order = await createOrder(planPrice);
+  
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: "INR",
+        name: "DineBoard",
+        description: `Subscribe to ${planName}`,
+        order_id: order.id,
+  
+        handler: async function (response: any) {
+          try {
+            // 👉 (Optional) Verify payment here using verifyOrder() if implemented
+            await subscribePlan(hotelId, planId); // Update hotel’s subscribed plan
+  
+            // ✅ Refetch updated hotel info to reflect subscribed plan
+            const updatedHotel = await getHotelByUser(user.id);
+            setHotel(updatedHotel);
+  
+            alert("✅ Payment Successful and Plan Subscribed!");
+          } catch (err) {
+            console.error("Subscription Error:", err);
+            alert("❌ Payment verification or subscription failed");
+          }
+        },
+  
+        prefill: {
+          name: user.name,
+          email: user.email,
+        },
+        theme: {
+          color: "#f43f5e",
+        },
+      };
+  
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error("Payment failed:", error);
+      alert("Something went wrong during payment.");
+    }
+  };
+  
+  
   return (
     <section
       className=" py-20 px-4 md:px-12"
@@ -147,8 +199,8 @@ const Pricing = () => {
   </button>
 ) : (
   <button
-    onClick={() => handlePayment(plan.id)}
-    className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 ${
+    onClick={() => handlePayment(plan.id, plan.price, plan.name)}
+    className={`w-full py-3 rounded-xl font-semibold transition-al cursor-pointer duration-200 ${
       plan.highlighted
         ? "bg-[#f43f5e] text-white hover:bg-[#e11d48]"
         : "border text-[#f43f5e] border-[#f43f5e] hover:bg-[#f43f5e]/10"

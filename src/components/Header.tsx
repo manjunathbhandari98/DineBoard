@@ -150,14 +150,14 @@ const Header = () => {
                 >
                   Plans
                 </Menu.Item>
-                <Menu.Item
+                {/* <Menu.Item
                   onClick={() =>
                     navigate("/settings")
                   }
                   leftSection={<IconSettings />}
                 >
                   Settings
-                </Menu.Item>
+                </Menu.Item> */}
                 <Menu.Divider />
                 <Menu.Item
                   leftSection={<IconLogout />}
