@@ -1,25 +1,75 @@
 import { Card } from "@mantine/core";
-import Button from "../components/ui/Button";
 import { useEffect, useState } from "react";
-import { getAllPlans } from "../service/pricingService";
 import { useThemeContext } from "../app/ThemeProvider";
-import RazorpayButton from "../components/ui/RazorPayButton";
+import { getHotelByUser, subscribePlan } from "../service/hotelService";
+import { getAllPlans } from "../service/pricingService";
+import { getProfileInfo } from "../service/userService";
 
 const Pricing = () => {
-  const [plans, setPlans] = useState([]);
   const { colorScheme } = useThemeContext();
 
+  const [plans, setPlans] = useState([]);
+  const [user, setUser] = useState<any>(null);
+  const [hotel, setHotel] = useState<any>(null);
+  const [hotelId, setHotelId] = useState<string | null>(null);
+
+  // Fetch user on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await getProfileInfo();
+        setUser(response);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Fetch hotel once user is available
+  useEffect(() => {
+    const fetchHotelId = async () => {
+      if (user?.id) {
+        try {
+          const response = await getHotelByUser(user.id);
+          setHotel(response)
+          setHotelId(response?.id);
+        } catch (error) {
+          console.error("Error fetching hotel:", error);
+        }
+      }
+    };
+    fetchHotelId();
+  }, [user]);
+
+  // Fetch plans
   useEffect(() => {
     const fetchPlans = async () => {
       try {
         const response = await getAllPlans();
         setPlans(response);
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching plans:", error);
       }
     };
     fetchPlans();
   }, []);
+
+  // Subscribe logic
+  const handlePayment = async (planId: number) => {
+    if (!hotelId) {
+      alert("Hotel not found for this user.");
+      return;
+    }
+
+    try {
+      await subscribePlan(hotelId, planId);
+      alert("Successfully subscribed to plan!");
+    } catch (error) {
+      console.error("Error subscribing to plan:", error);
+      alert("Failed to subscribe to plan.");
+    }
+  };
 
   return (
     <section
@@ -88,10 +138,26 @@ const Pricing = () => {
                 )}
               </ul>
 
-              <RazorpayButton
-                amount={plan.price}
-                highlighted={plan.highlighted}
-              />
+              {hotel?.planId === plan.id ? (
+  <button
+    disabled
+    className="w-full py-3 rounded-xl font-semibold bg-green-500 text-white cursor-not-allowed opacity-80 flex items-center justify-center"
+  >
+    Subscribed
+  </button>
+) : (
+  <button
+    onClick={() => handlePayment(plan.id)}
+    className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 ${
+      plan.highlighted
+        ? "bg-[#f43f5e] text-white hover:bg-[#e11d48]"
+        : "border text-[#f43f5e] border-[#f43f5e] hover:bg-[#f43f5e]/10"
+    }`}
+  >
+    Upgrade – ₹{plan.price}
+  </button>
+)}
+
             </div>
           </Card>
         ))}

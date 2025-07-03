@@ -1,54 +1,35 @@
 import axios from "axios";
 import { getToken } from "./localStorageService";
-import { addHotel } from "../slice/hotelSlice";
-const BASE_URL = import.meta.env
-  .VITE_REACT_APP_API_URL;
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
-export const createHotel = async (
-  hotelData: any,
-  ownerId: any
-) => {
+export const createHotel = async (hotelData: any, ownerId: any) => {
   try {
     const response = await axios.post(
       `${BASE_URL}/hotels/${ownerId}`,
       hotelData,
       {
         headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken("authToken")}`,
+          "Content-Type": "multipart/form-data",
         },
       }
     );
     return response.data;
   } catch (e) {
-    if (axios.isAxiosError(e)) {
-      throw (
-        e.response?.data || {
-          message: "Can't create Hotel",
-        }
-      );
-    }
     throw {
       message: "An unexpected error occurred",
     };
   }
 };
 
-export const getHotelByUser = async (
-  ownerId: any
-) => {
+export const getHotelByUser = async (ownerId: any) => {
   try {
     const token = getToken("authToken");
-    const response = await axios.get(
-      `${BASE_URL}/hotels/by-user/${ownerId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get(`${BASE_URL}/hotels/by-user/${ownerId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (e) {
     if (axios.isAxiosError(e)) {
@@ -67,14 +48,11 @@ export const getHotelByUser = async (
 export const getHotelById = async (id: any) => {
   try {
     const token = getToken("authToken");
-    const response = await axios.get(
-      `${BASE_URL}/hotels/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get(`${BASE_URL}/hotels/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return response.data;
   } catch (e) {
@@ -91,10 +69,7 @@ export const getHotelById = async (id: any) => {
   }
 };
 
-export const updateHotel = async (
-  hotelId: any,
-  hotelData: any
-) => {
+export const updateHotel = async (hotelId: any, hotelData: any) => {
   try {
     const token = getToken("authToken");
     const response = await axios.put(
@@ -121,3 +96,19 @@ export const updateHotel = async (
     };
   }
 };
+
+export const subscribePlan = async(hotelId:string, planId:number) =>{
+  try {
+    const token = getToken('authToken');
+    const response = await axios.put(`${BASE_URL}/hotels/${hotelId}/subscribe?planId=${planId}`,{},{
+      headers:{
+        Authorization:`Bearer ${token}`
+      }
+    })
+    return response.data;
+  } catch (error) {
+    throw{
+      message:'An unexpected error occured'
+    }
+  }
+}

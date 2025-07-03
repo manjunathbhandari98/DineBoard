@@ -1,10 +1,10 @@
 // components/AddItemModal.tsx
 import {
-  Modal,
-  TextInput,
   Button,
-  Textarea,
   FileInput,
+  Modal,
+  Textarea,
+  TextInput,
 } from "@mantine/core";
 
 interface AddItemModalProps {
@@ -19,7 +19,7 @@ interface AddItemModalProps {
   itemPrice: any;
   setItemPrice: (val: number) => void;
   onFileChange: (file: File | null) => void;
-  base64Image?: string | null;
+  itemImage: string | any;
 }
 
 export default function AddItemModal({
@@ -34,8 +34,9 @@ export default function AddItemModal({
   itemPrice,
   setItemPrice,
   onFileChange,
-  base64Image,
+  itemImage
 }: AddItemModalProps) {
+
   return (
     <Modal
       opened={opened}
@@ -73,9 +74,9 @@ export default function AddItemModal({
         label="Upload Image"
         onChange={onFileChange}
       />
-      {base64Image && (
+      {itemImage && (
         <img
-          src={base64Image}
+          src={itemImage instanceof File ? URL.createObjectURL(itemImage) : itemImage}
           alt="Preview"
           style={{
             marginTop: 10,

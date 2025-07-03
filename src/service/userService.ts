@@ -1,7 +1,6 @@
 import axios from "axios";
 import {
-  getToken,
-  setToken,
+  getToken
 } from "./localStorageService";
 
 const BASE_URL = import.meta.env
@@ -76,3 +75,5 @@ export const getProfileInfo = async () => {
     };
   }
 };
+
+

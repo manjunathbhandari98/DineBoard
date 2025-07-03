@@ -1,14 +1,13 @@
 // components/EditMenuItemModal.tsx
 import {
-  Modal,
-  TextInput,
   Button,
-  Textarea,
   FileInput,
   Image,
+  Modal,
+  Textarea,
+  TextInput,
 } from "@mantine/core";
 import { MenuItem } from "../../interface"; // Adjust the import path as needed
-import React, { useState } from "react";
 
 interface EditMenuItemModalProps {
   opened: boolean;
@@ -26,7 +25,7 @@ interface EditMenuItemModalProps {
   itemPrice: number | null;
   setItemPrice: (val: number | null) => void;
   onFileChange: (file: File | null) => void;
-  base64Image?: string | null;
+  itemImage?: string | null;
   initialItem?: MenuItem | null; // Optional: to prefill data
 }
 
@@ -42,9 +41,11 @@ export default function EditMenuItemModal({
   itemPrice,
   setItemPrice,
   onFileChange,
-  base64Image,
+  itemImage,
   initialItem,
 }: EditMenuItemModalProps) {
+
+
   return (
     <Modal
       opened={opened}
@@ -89,9 +90,9 @@ export default function EditMenuItemModal({
         onChange={onFileChange}
         accept="image/*"
       />
-      {base64Image && (
+      {itemImage && (
         <Image
-          src={base64Image}
+          src={itemImage}
           alt="Preview"
           style={{
             marginTop: 10,
@@ -101,31 +102,32 @@ export default function EditMenuItemModal({
         />
       )}
       <Button
-        mt="md"
-        fullWidth
-        onClick={() => {
-          // Wrap onSubmit call in a new function
-          if (initialItem) {
-            const updatedItem = {
-              id: initialItem.id,
-              name: itemName,
-              description: itemDescription,
-              price:
-                itemPrice !== null
-                  ? Number(itemPrice)
-                  : 0,
-              menuId: initialItem.menuId, // Keep original
-              categoryId: initialItem.categoryId, // Keep original
-              itemImage:
-                base64Image?.split(",")[1],
-            };
-            onSubmit(updatedItem);
-          }
-        }}
-        loading={isSubmitting}
-      >
-        Save Changes
-      </Button>
+  mt="md"
+  fullWidth
+  onClick={() => {
+    console.log("Save button clicked!"); // Check if this logs
+  console.log("initialItem in modal:")
+    
+    if (initialItem) {
+      const updatedItem = {
+        id: initialItem.id,
+        name: itemName,
+        description: itemDescription,
+        price: itemPrice !== null ? Number(itemPrice) : 0,
+        menuId: initialItem.menuId,
+        categoryId: initialItem.categoryId,
+        itemImage: itemImage,
+      };
+      onSubmit(updatedItem); 
+    }else {
+      console.warn("initialItem is null or undefined. Cannot submit.");
+    }
+  }}
+  loading={isSubmitting}
+>
+  {isSubmitting ? "Saving..." : "Save Changes"}
+</Button>
+
     </Modal>
   );
 }

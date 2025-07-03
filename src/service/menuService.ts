@@ -1,27 +1,18 @@
 import axios from "axios";
 import { getToken } from "./localStorageService";
-const BASE_URL = import.meta.env
-  .VITE_REACT_APP_API_URL;
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 export const createMenu = async (menu: any) => {
   try {
-    const response = await axios.post(
-      `${BASE_URL}/menus`,
-      menu,
-      {
-        headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.post(`${BASE_URL}/menus`, menu, {
+      headers: {
+        Authorization: `Bearer ${getToken("authToken")}`,
+        "Content-Type": "application/json",
+      },
+    });
     if (response.data.success === false) {
       throw {
-        errorMessage:
-          response.data.message ||
-          "Failed to Create Menu",
+        errorMessage: response.data.message || "Failed to Create Menu",
       };
     }
   } catch (e) {
@@ -40,17 +31,12 @@ export const createMenu = async (menu: any) => {
 
 export const getMenu = async (hotelId: any) => {
   try {
-    const response = await axios.get(
-      `${BASE_URL}/menus/hotel/${hotelId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.get(`${BASE_URL}/menus/hotel/${hotelId}`, {
+      headers: {
+        Authorization: `Bearer ${getToken("authToken")}`,
+        "Content-Type": "application/json",
+      },
+    });
     return response.data;
   } catch (e) {
     if (axios.isAxiosError(e)) {
@@ -68,17 +54,12 @@ export const getMenu = async (hotelId: any) => {
 
 export const getMenuById = async (id: any) => {
   try {
-    const response = await axios.get(
-      `${BASE_URL}/menus/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.get(`${BASE_URL}/menus/${id}`, {
+      headers: {
+        Authorization: `Bearer ${getToken("authToken")}`,
+        "Content-Type": "application/json",
+      },
+    });
     return response.data;
   } catch (e) {
     if (axios.isAxiosError(e)) {
@@ -94,19 +75,14 @@ export const getMenuById = async (id: any) => {
   }
 };
 
-export const updateMenu = async (
-  menuId: any,
-  updatedMenu: any
-) => {
+export const updateMenu = async (menuId: any, updatedMenu: any) => {
   try {
     const response = await axios.put(
       `${BASE_URL}/menus/${menuId}`,
       updatedMenu,
       {
         headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
+          Authorization: `Bearer ${getToken("authToken")}`,
           "Content-Type": "application/json",
         },
       }
@@ -128,16 +104,11 @@ export const updateMenu = async (
 
 export const deleteMenu = async (menuId: any) => {
   try {
-    const response = await axios.delete(
-      `${BASE_URL}/menus/${menuId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
-        },
-      }
-    );
+    const response = await axios.delete(`${BASE_URL}/menus/${menuId}`, {
+      headers: {
+        Authorization: `Bearer ${getToken("authToken")}`,
+      },
+    });
     return response.data;
   } catch (e) {
     if (axios.isAxiosError(e)) {
@@ -153,36 +124,21 @@ export const deleteMenu = async (menuId: any) => {
   }
 };
 
-export const trackMenuView = async (
-  menuId: string
-) => {
+export const trackMenuView = async (menuId: string) => {
   try {
-    await axios.post(
-      `${BASE_URL}/menus/analytics/${menuId}/track-view`
-    );
+    await axios.post(`${BASE_URL}/menus/analytics/${menuId}/track-view`);
   } catch (error) {
-    console.error(
-      "Failed to increment menu views",
-      error
-    );
+    console.error("Failed to increment menu views", error);
   }
 };
 
-export const addMenuCategory = async (
-  categoryData: any
-) => {
+export const addMenuCategory = async (categoryData: any) => {
   try {
-    const response = await axios.post(
-      `${BASE_URL}/category`,
-      categoryData,
-      {
-        headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
-        },
-      }
-    );
+    const response = await axios.post(`${BASE_URL}/category`, categoryData, {
+      headers: {
+        Authorization: `Bearer ${getToken("authToken")}`,
+      },
+    });
     return response.data;
   } catch (e) {
     throw {
@@ -191,17 +147,13 @@ export const addMenuCategory = async (
   }
 };
 
-export const getCategoryByMenu = async (
-  menuId: any
-) => {
+export const getCategoryByMenu = async (menuId: any) => {
   try {
     const response = await axios.get(
       `${BASE_URL}/category/categories/${menuId}`,
       {
         headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
+          Authorization: `Bearer ${getToken("authToken")}`,
         },
       }
     );
@@ -213,19 +165,14 @@ export const getCategoryByMenu = async (
   }
 };
 
-export const updateCategory = async (
-  categoryId: any,
-  data: any
-) => {
+export const updateCategory = async (categoryId: any, data: any) => {
   try {
     const response = await axios.put(
       `${BASE_URL}/category/${categoryId}`,
       data,
       {
         headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
+          Authorization: `Bearer ${getToken("authToken")}`,
           "Content-Type": "application/json",
         },
       }
@@ -238,18 +185,14 @@ export const updateCategory = async (
   }
 };
 
-export const deleteCategory = async (
-  categoryId: any
-) => {
+export const deleteCategory = async (categoryId: any) => {
   try {
     const response = await axios.delete(
       `${BASE_URL}/category/${categoryId}`,
 
       {
         headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
+          Authorization: `Bearer ${getToken("authToken")}`,
           "Content-Type": "application/json",
         },
       }
@@ -262,21 +205,14 @@ export const deleteCategory = async (
   }
 };
 
-export const addMenuItem = async (
-  menuItem: any
-) => {
+export const addMenuItem = async (menuItem: any) => {
   try {
-    const response = await axios.post(
-      `${BASE_URL}/menu-item`,
-      menuItem,
-      {
-        headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
-        },
-      }
-    );
+    const response = await axios.post(`${BASE_URL}/menu-item`, menuItem, {
+      headers: {
+        Authorization: `Bearer ${getToken("authToken")}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   } catch (e) {
     throw {
@@ -285,13 +221,9 @@ export const addMenuItem = async (
   }
 };
 
-export const getMenuItems = async (
-  menuId: any
-) => {
+export const getMenuItems = async (menuId: any) => {
   try {
-    const response = await axios.get(
-      `${BASE_URL}/menu-item/menu/${menuId}`
-    );
+    const response = await axios.get(`${BASE_URL}/menu-item/menu/${menuId}`);
     return response.data;
   } catch (error) {
     throw {
@@ -300,10 +232,7 @@ export const getMenuItems = async (
   }
 };
 
-export const getMenuItemsByCategory = async (
-  menuId: any,
-  categoryId: any
-) => {
+export const getMenuItemsByCategory = async (menuId: any, categoryId: any) => {
   try {
     const response = await axios.get(
       `${BASE_URL}/menu-item/menu/${menuId}/${categoryId}`
@@ -316,19 +245,15 @@ export const getMenuItemsByCategory = async (
   }
 };
 
-export const updateMenuItemService = async (
-  menuItemId: any,
-  data: any
-) => {
+export const updateMenuItemService = async (menuItemId: any, data: any) => {
   try {
     const response = await axios.put(
       `${BASE_URL}/menu-item/${menuItemId}`,
       data,
       {
         headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
+          Authorization: `Bearer ${getToken("authToken")}`,
+          "Content-Type": "multipart/form-data",
         },
       }
     );
@@ -340,20 +265,13 @@ export const updateMenuItemService = async (
   }
 };
 
-export const deleteMenuItemService = async (
-  menuItemId: any
-) => {
+export const deleteMenuItemService = async (menuItemId: any) => {
   try {
-    const response = await axios.delete(
-      `${BASE_URL}/menu-item/${menuItemId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${getToken(
-            "authToken"
-          )}`,
-        },
-      }
-    );
+    const response = await axios.delete(`${BASE_URL}/menu-item/${menuItemId}`, {
+      headers: {
+        Authorization: `Bearer ${getToken("authToken")}`,
+      },
+    });
     return response.data;
   } catch (error) {
     throw {

@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { TextInput } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../service/userService";
-import { notifications } from "@mantine/notifications";
 import Button from "../ui/Button";
 
 const RegisterPage = () => {
@@ -106,7 +106,7 @@ const RegisterPage = () => {
         type="submit"
         fullWidth
       >
-        Register
+        {isLoading ? 'Registering...': 'Register'}
       </Button>
     </form>
   );

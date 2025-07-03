@@ -1,17 +1,9 @@
-import { useEffect, useState } from "react";
-import NavLinks from "./NavLinks";
-import Sidebar from "./Sidebar";
 import {
-  Link,
-  useNavigate,
-} from "react-router-dom";
-import Text from "./ui/Text";
-import {
-  Menu,
-  Modal,
+  Avatar,
   Card,
   Group,
-  Avatar,
+  Menu,
+  Modal,
 } from "@mantine/core";
 import {
   IconBuildingSkyscraper,
@@ -21,18 +13,26 @@ import {
   IconPlanet,
   IconSettings,
 } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import {
-  useSelector,
   useDispatch,
+  useSelector,
 } from "react-redux";
 import {
-  removeUser,
-  setProfile,
-} from "../slice/userSlice";
-import Button from "./ui/Button";
+  Link,
+  useNavigate,
+} from "react-router-dom";
 import { useThemeContext } from "../app/ThemeProvider";
+import { useHotel } from "../context/HotelContext";
 import { getHotelByUser } from "../service/hotelService";
 import { getProfileInfo } from "../service/userService";
+import {
+  removeUser
+} from "../slice/userSlice";
+import NavLinks from "./NavLinks";
+import Sidebar from "./Sidebar";
+import Button from "./ui/Button";
+import Text from "./ui/Text";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -49,6 +49,8 @@ const Header = () => {
   const [hotelData, setHotelData] =
     useState<any>();
   const [profile, setProfile] = useState<any>();
+
+  const { logoUrl, setLogoUrl } = useHotel();
 
   const handleLogout = () => {
     dispatch(removeUser());
@@ -67,23 +69,20 @@ const Header = () => {
   useEffect(() => {
     if (!profile?.id) return; // wait until profile is loaded
 
-    const fetchHotelByUser = async (
-      userId: string
-    ) => {
+    const fetchHotelByUser = async (userId: string) => {
       try {
-        const response = await getHotelByUser(
-          userId
-        );
+        const response = await getHotelByUser(userId);
         if (response) {
           setHotelData(response);
+          if (response.logoUrl) {
+            setLogoUrl(response.logoUrl); // ✅ update context on page load
+          }
         }
       } catch (error) {
-        console.error(
-          "Error fetching hotel:",
-          error
-        );
+        console.error("Error fetching hotel:", error);
       }
     };
+    
 
     fetchHotelByUser(profile?.id);
   }, [profile?.id]);
@@ -117,15 +116,9 @@ const Header = () => {
           {user && (
             <Menu withArrow>
               <Menu.Target>
-                {hotelData?.logoUrl ? (
+                {logoUrl ? (
                   <Avatar
-                    src={
-                      hotelData.logoUrl?.startsWith(
-                        "data:image"
-                      )
-                        ? hotelData?.logoUrl
-                        : `data:image/png;base64,${hotelData?.logoUrl}`
-                    }
+                    src={logoUrl}
                     alt={hotelData.name}
                     size={45}
                     radius="xl"

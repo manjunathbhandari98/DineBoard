@@ -3,7 +3,7 @@ export interface MenuItem {
   name: string;
   description: string;
   price: number;
-  itemImage?: string;
+  itemImage: string | any;
   menuId: string; // Or number
   categoryId: string; // Or number
 }
@@ -28,6 +28,7 @@ export interface Profile {
 
 export interface Hotel {
   id: string; // Or number
+  planId: number;
   // other hotel fields...
 }
 

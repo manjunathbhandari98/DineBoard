@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Card,
+  Flex,
   Group,
   Image,
   Loader,
@@ -8,14 +9,12 @@ import {
   Stack,
   Text,
   Tooltip,
-  Flex, // Import Flex for better layout control
 } from "@mantine/core";
-import { MenuItem } from "../../interface"; // adjust path
 import {
   IconEdit,
-  IconTrash,
-  IconX,
+  IconTrash
 } from "@tabler/icons-react";
+import { MenuItem } from "../../interface"; // adjust path
 
 interface Props {
   items: MenuItem[];
@@ -77,7 +76,7 @@ const MenuItemsGrid = ({
             {item.itemImage && (
               <Card.Section>
                 <Image
-                  src={item.itemImage}
+                  src={item.itemImage instanceof File ? URL.createObjectURL(item.itemImage) : item.itemImage}
                   height={120}
                   alt={item.name}
                   fit="cover"

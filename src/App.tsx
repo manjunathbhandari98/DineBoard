@@ -1,16 +1,19 @@
-import ThemeProvider from "./app/ThemeProvider";
 import "@mantine/core/styles.css";
-import { BrowserRouter } from "react-router-dom";
 import "@mantine/notifications/styles.css";
-import AppContent from "./routes/AppContext";
+import { BrowserRouter } from "react-router-dom";
 import "./App.css";
 import { AuthChecker } from "./context/AuthContext";
+import { HotelProvider } from "./context/HotelContext";
+import AppContent from "./routes/AppContext";
 
 const App = () => {
   return (
     <BrowserRouter>
-      <AuthChecker />
+    <HotelProvider>
+       <AuthChecker />
       <AppContent />
+    </HotelProvider>
+     
     </BrowserRouter>
   );
 };

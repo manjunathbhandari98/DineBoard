@@ -1,233 +1,157 @@
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
 import {
+  ActionIcon,
+  Alert,
+  Box,
   Button,
+  Container,
   Group,
+  Loader,
+  LoadingOverlay,
+  Paper,
+  Stack,
+  Tabs,
   Text,
   TextInput,
   Title,
-  Tabs,
-  Container,
-  Stack,
-  Paper,
-  LoadingOverlay,
-  Alert,
-  Box,
-  Loader,
-  ActionIcon,
   Tooltip, // Use Loader for specific loading states
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 import {
-  IconPlus,
   IconAlertCircle,
   IconPencil,
+  IconPlus,
   IconTrash,
   IconX, // Added for notifications
 } from "@tabler/icons-react";
-import {
-  createMenu,
-  addMenuCategory,
-  updateMenu,
-  getMenu,
-  getCategoryByMenu,
-  addMenuItem,
-  getMenuItems,
-  deleteMenu,
-  updateCategory,
-  deleteCategory,
-  deleteMenuItemService,
-  updateMenuItemService,
-  getMenuItemsByCategory, // Import the service to fetch items
-} from "../service/menuService"; // Assuming menuService exports getMenuItems
-import { getHotelByUser } from "../service/hotelService";
-import { getProfileInfo } from "../service/userService";
-import { notifications } from "@mantine/notifications";
-import {
-  Menu,
-  MenuCategory,
-  Profile,
-  MenuItem,
-  Category,
-} from "../interface";
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import { useNavigate } from "react-router-dom";
 import AddItemModal from "../components/hotelMenu/AddItemModal";
 import CreateMenuModal from "../components/hotelMenu/CreateMenuModal";
-import MenuCard from "../components/hotelMenu/MenuCard";
-import MenuHeader from "../components/hotelMenu/MenuHeader";
-import EmptyMenuNotice from "../components/hotelMenu/EmptyMenuNotice";
-import MenuItemsGrid from "../components/hotelMenu/MenuItemsGrid";
-import DeleteMenuModal from "../components/hotelMenu/DeleteMenuModal";
-import EditCategoryModal from "../components/hotelMenu/EditCategoryModal";
 import DeleteCategoryModal from "../components/hotelMenu/DeleteCategoryModal";
 import DeleteMenuItemModal from "../components/hotelMenu/DeleteMenuItemModal";
+import DeleteMenuModal from "../components/hotelMenu/DeleteMenuModal";
+import EditCategoryModal from "../components/hotelMenu/EditCategoryModal";
 import EditMenuItemModal from "../components/hotelMenu/EditMenuItemModal";
+import EmptyMenuNotice from "../components/hotelMenu/EmptyMenuNotice";
+import MenuCard from "../components/hotelMenu/MenuCard";
+import MenuHeader from "../components/hotelMenu/MenuHeader";
+import MenuItemsGrid from "../components/hotelMenu/MenuItemsGrid";
+import {
+  Category,
+  Hotel,
+  Menu,
+  MenuCategory,
+  MenuItem,
+  Profile,
+} from "../interface";
+import { getHotelByUser } from "../service/hotelService";
+import {
+  addMenuCategory,
+  addMenuItem,
+  createMenu,
+  deleteCategory,
+  deleteMenu,
+  deleteMenuItemService,
+  getCategoryByMenu,
+  getMenu,
+  getMenuItemsByCategory,
+  updateCategory,
+  updateMenu,
+  updateMenuItemService
+} from "../service/menuService"; // Assuming menuService exports getMenuItems
+import { getProfileInfo } from "../service/userService";
 // Optional: Add notifications for better UX
 // import { notifications } from '@mantine/notifications';
 
+
 const MenuManager: React.FC = () => {
+  const navigate = useNavigate();
   const [menus, setMenus] = useState<Menu[]>([]);
-  const [activeMenu, setActiveMenu] =
-    useState<Menu | null>(null);
-  const [categories, setCategories] = useState<
-    MenuCategory[]
-  >([]);
-  const [profile, setProfile] =
-    useState<Profile | null>(null);
-  const [hotelId, setHotelId] = useState<
-    string | null
-  >(null); // Or number
+  const [activeMenu, setActiveMenu] = useState<Menu | null>(null);
+  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [hotelId, setHotelId] = useState<string | null>(null);
 
   // Loading states
-  const [isInitialLoading, setIsInitialLoading] =
-    useState(true); // Overall initial load
-  const [
-    isCategoryLoading,
-    setIsCategoryLoading,
-  ] = useState(false); // Loading categories for active menu
-  const [isItemLoading, setIsItemLoading] =
-    useState(false); // Loading items for active tab
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isCategoryLoading, setIsCategoryLoading] = useState(false);
+  const [isItemLoading, setIsItemLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State for items of the currently selected category tab
-  const [
-    activeCategoryItems,
-    setActiveCategoryItems,
-  ] = useState<MenuItem[]>([]);
-  const [
-    activeTabCategoryId,
-    setActiveTabCategoryId,
-  ] = useState<string | null>(null); // Track the active tab value (category ID)
+  const [activeCategoryItems, setActiveCategoryItems] = useState<MenuItem[]>([]);
+  const [activeTabCategoryId, setActiveTabCategoryId] = useState<string | null>(null);
 
   // Modal states
-  const [
-    menuModalOpened,
-    {
-      open: openMenuModal,
-      close: closeMenuModal,
-    },
-  ] = useDisclosure(false);
-
-  const [
-    deleteModalOpened,
-    {
-      open: openDeleteModal,
-      close: closeDeleteModal,
-    },
-  ] = useDisclosure(false);
-
-  const [
-    deleteCategoryModalOpened,
-    {
-      open: openCategoryDeleteModal,
-      close: closeCategoryDeleteModal,
-    },
-  ] = useDisclosure(false);
-
-  const [
-    itemModalOpened,
-    {
-      open: openItemModal,
-      close: closeItemModal,
-    },
-  ] = useDisclosure(false);
-
-  const [
-    categoryModalOpened,
-    {
-      open: openCategoryModal,
-      close: closeCategoryModal,
-    },
-  ] = useDisclosure(false);
-
-  const [
-    deleteItemModalOpened,
-    {
-      open: openDeleteItemModal,
-      close: closeDeleteItemModal,
-    },
-  ] = useDisclosure(false);
-  const [
-    editItemModalOpened,
-    {
-      open: openEditItemModal,
-      close: closeEditItemModal,
-    },
-  ] = useDisclosure(false);
+  const [menuModalOpened, { open: openMenuModal, close: closeMenuModal }] = useDisclosure(false);
+  const [deleteModalOpened, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
+  const [deleteCategoryModalOpened, { open: openCategoryDeleteModal, close: closeCategoryDeleteModal }] = useDisclosure(false);
+  const [itemModalOpened, { open: openItemModal, close: closeItemModal }] = useDisclosure(false);
+  const [categoryModalOpened, { open: openCategoryModal, close: closeCategoryModal }] = useDisclosure(false);
+  const [deleteItemModalOpened, { open: openDeleteItemModal, close: closeDeleteItemModal }] = useDisclosure(false);
+  const [editItemModalOpened, { open: openEditItemModal, close: closeEditItemModal }] = useDisclosure(false);
 
   // Form states
-  const [newMenuName, setNewMenuName] =
-    useState("");
-  const [categoryName, setCategoryName] =
-    useState("");
-  const [
-    selectedCategoryIdForItem,
-    setSelectedCategoryIdForItem,
-  ] = useState<string | null>(null); // Category ID for the "Add Item" modal
+  const [newMenuName, setNewMenuName] = useState("");
+  const [categoryName, setCategoryName] = useState("");
+  const [selectedCategoryIdForItem, setSelectedCategoryIdForItem] = useState<string | null>(null);
 
   // New item form states
   const [itemName, setItemName] = useState("");
-  const [itemDescription, setItemDescription] =
-    useState("");
-  const [itemPrice, setItemPrice] = useState<
-    number | null
-  >(null);
-  const [itemImage, setItemImage] =
-    useState<File | null>(null);
-  const [base64Image, setBase64Image] = useState<
-    string | null
-  >(null);
-  const [editingMenu, setEditingMenu] =
-    useState<Menu | null>(null);
-  const [deletingMenu, setDeletingMenu] =
-    useState<Menu | null>(null);
-  const [editingCategory, setEditingCategory] =
-    useState<Category | null>(null);
-  const [newCategoryName, setNewCategoryName] =
-    useState("");
-  const [deletingCategory, setDeletingCategory] =
-    useState<Category | null>(null);
-  const [itemEditMode, setItemEditMode] =
-    useState(false);
+  const [itemDescription, setItemDescription] = useState("");
+  const [itemPrice, setItemPrice] = useState<number | null>(null);
+  const [itemImageFile, setItemImageFile] = useState<File | null>(null); // State for the actual File object
+  const [itemImageUrl, setItemImageUrl] = useState<string | null>(null); // State for the image URL (preview or existing)
 
-  const [itemToDelete, setItemToDelete] =
-    useState<MenuItem | null>(null);
-  const [itemToEdit, setItemToEdit] =
-    useState<MenuItem | null>(null);
+  const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
+  const [deletingMenu, setDeletingMenu] = useState<Menu | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
+
+  const [itemToDelete, setItemToDelete] = useState<MenuItem | null>(null);
+  const [itemToEdit, setItemToEdit] = useState<MenuItem | null>(null);
+  const [hotel, setHotel] = useState<Hotel | null>();
+
+  // Effect to create/revoke object URL for image preview
+  useEffect(() => {
+    if (itemImageFile) {
+      const url = URL.createObjectURL(itemImageFile);
+      setItemImageUrl(url);
+      return () => URL.revokeObjectURL(url); // Clean up on unmount or file change
+    } else if (itemToEdit?.itemImage) {
+      setItemImageUrl(itemToEdit.itemImage); // If editing, use existing URL
+    } else {
+      setItemImageUrl(null); // Clear image URL if no file and not editing
+    }
+  }, [itemImageFile, itemToEdit?.itemImage]);
+
   // --- Data Fetching ---
 
-  // Fetch Profile and Hotel ID (runs once)
-  const fetchProfileAndHotel =
-    useCallback(async () => {
-      setIsInitialLoading(true);
-      try {
-        const profileData =
-          await getProfileInfo();
-        setProfile(profileData);
-        if (profileData?.id) {
-          const hotelData = await getHotelByUser(
-            profileData.id
-          );
-          setHotelId(hotelData.id);
-        } else {
-          console.error("Profile ID not found.");
-        }
-      } catch (error) {
-        console.error(
-          "Error fetching profile or hotel:",
-          error
-        );
-        // Show error notification
-      } finally {
-        // Loading finished after menus are fetched
-        setIsInitialLoading(false);
+  const fetchProfileAndHotel = useCallback(async () => {
+    setIsInitialLoading(true);
+    try {
+      const profileData = await getProfileInfo();
+      setProfile(profileData);
+      if (profileData?.id) {
+        const hotelData = await getHotelByUser(profileData.id);
+        setHotel(hotelData);
+        setHotelId(hotelData.id);
+      } else {
+        console.error("Profile ID not found.");
       }
-    }, []);
+    } catch (error) {
+      console.error("Error fetching profile or hotel:", error);
+    } finally {
+      setIsInitialLoading(false);
+    }
+  }, []);
 
-  // Fetch Menus list (runs when hotelId changes)
   const fetchMenus = useCallback(async () => {
     if (!hotelId) return;
     setIsInitialLoading(true);
@@ -240,9 +164,7 @@ const MenuManager: React.FC = () => {
           return null;
         }
 
-        const refreshedActiveMenu = data.find(
-          (m: Menu) => m.id === prevActiveMenu.id
-        );
+        const refreshedActiveMenu = data.find((m: Menu) => m.id === prevActiveMenu.id);
 
         if (!refreshedActiveMenu) {
           setCategories([]);
@@ -254,87 +176,55 @@ const MenuManager: React.FC = () => {
         }
       });
     } catch (error) {
-      console.error(
-        "Error fetching menus:",
-        error
-      );
+      console.error("Error fetching menus:", error);
     } finally {
       setIsInitialLoading(false);
     }
-  }, [hotelId]); // ✅ Only depends on hotelId now
+  }, [hotelId]);
 
-  // Include activeMenu.id to potentially refresh
+  const fetchCategoriesForActiveMenu = useCallback(async () => {
+    if (!activeMenu?.id) {
+      setCategories([]);
+      setActiveCategoryItems([]);
+      setActiveTabCategoryId(null);
+      return;
+    }
+    setIsCategoryLoading(true);
+    setActiveCategoryItems([]);
+    setActiveTabCategoryId(null);
+    try {
+      const fetchedCategories = await getCategoryByMenu(activeMenu.id);
+      setCategories(fetchedCategories);
 
-  // Fetch Categories for the Active Menu (runs when activeMenu changes)
-  const fetchCategoriesForActiveMenu =
-    useCallback(async () => {
-      if (!activeMenu?.id) {
-        setCategories([]);
-        setActiveCategoryItems([]);
+      if (fetchedCategories.length > 0) {
+        setActiveTabCategoryId(String(fetchedCategories[0].id));
+      } else {
         setActiveTabCategoryId(null);
-        return;
       }
-      setIsCategoryLoading(true);
-      setActiveCategoryItems([]); // Clear items when menu changes
-      setActiveTabCategoryId(null); // Clear active tab
-      try {
-        // This service ONLY returns categories, NOT items
-        const fetchedCategories =
-          await getCategoryByMenu(activeMenu.id);
-        setCategories(fetchedCategories);
+    } catch (error) {
+      console.error(`Error fetching categories for menu ${activeMenu.id}:`, error);
+      setCategories([]);
+    } finally {
+      setIsCategoryLoading(false);
+    }
+  }, [activeMenu?.id]);
 
-        // *** Automatically set the first category tab as active ***
-        if (fetchedCategories.length > 0) {
-          setActiveTabCategoryId(
-            String(fetchedCategories[0].id)
-          );
-          // Items for this first tab will be fetched by the fetchItemsForActiveTab effect
-        } else {
-          setActiveTabCategoryId(null); // No categories, no active tab
-        }
-      } catch (error) {
-        console.error(
-          `Error fetching categories for menu ${activeMenu.id}:`,
-          error
-        );
-        setCategories([]); // Clear on error
-        // Show error notification
-      } finally {
-        setIsCategoryLoading(false);
-      }
-    }, [activeMenu?.id]);
-
-  // *** Fetch Menu Items for the Active Category Tab ***
-  const fetchItemsForActiveTab =
-    useCallback(async () => {
-      // Only fetch if we have an active menu and an active category tab ID
-      if (
-        !activeMenu?.id ||
-        !activeTabCategoryId
-      ) {
-        setActiveCategoryItems([]); // Clear items if no active tab/menu
-        return;
-      }
-      setIsItemLoading(true);
-      try {
-        // Call the specific service to get items for the active category
-        const items =
-          await getMenuItemsByCategory(
-            activeMenu.id,
-            activeTabCategoryId
-          );
-        setActiveCategoryItems(items || []); // Ensure it's an array
-      } catch (error) {
-        console.error(
-          `Error fetching items for category ${activeTabCategoryId}:`,
-          error
-        );
-        setActiveCategoryItems([]); // Clear items on error
-        // Show error notification
-      } finally {
-        setIsItemLoading(false);
-      }
-    }, [activeMenu?.id, activeTabCategoryId]); // Dependencies: menu ID and active tab ID
+  const fetchItemsForActiveTab = useCallback(async () => {
+    if (!activeMenu?.id || !activeTabCategoryId) {
+      setActiveCategoryItems([]);
+      return;
+    }
+    setIsItemLoading(true);
+    try {
+      const items = await getMenuItemsByCategory(activeMenu.id, activeTabCategoryId);
+      setActiveCategoryItems(items || []);
+    } catch (error) {
+      console.error(`Error fetching items for category ${activeTabCategoryId}:`, error);
+      setActiveCategoryItems([]);
+    } finally {
+      setIsItemLoading(false);
+    }
+  }, [activeMenu?.id, activeTabCategoryId]);
 
   // --- Triggering Effects ---
   useEffect(() => {
@@ -349,12 +239,11 @@ const MenuManager: React.FC = () => {
     fetchCategoriesForActiveMenu();
   }, [fetchCategoriesForActiveMenu]);
 
-  // *** New Effect to fetch items when the active tab changes ***
   useEffect(() => {
     fetchItemsForActiveTab();
-  }, [fetchItemsForActiveTab]); // Runs when fetchItemsForActiveTab function identity changes (due to dependencies)
+  }, [fetchItemsForActiveTab]);
 
-  // --- Action Handlers (Mostly unchanged, ensure IDs are passed correctly) ---
+  // --- Action Handlers ---
 
   const handleAddOrUpdateMenu = async () => {
     if (!newMenuName.trim() || !hotelId) return;
@@ -362,22 +251,17 @@ const MenuManager: React.FC = () => {
 
     try {
       if (editingMenu) {
-        // Edit existing menu
         const updatedMenu = {
           ...editingMenu,
           title: newMenuName,
         };
-        await updateMenu(
-          editingMenu.id,
-          updatedMenu
-        );
+        await updateMenu(editingMenu.id, updatedMenu);
         notifications.show({
           title: "Menu Updated",
           message: "Menu updated successfully.",
           color: "green",
         });
       } else {
-        // Create new menu
         const newMenuPayload = {
           title: newMenuName,
           isPublished: false,
@@ -391,7 +275,6 @@ const MenuManager: React.FC = () => {
         });
       }
 
-      // Clear state and refresh
       setNewMenuName("");
       setEditingMenu(null);
       closeMenuModal();
@@ -399,9 +282,7 @@ const MenuManager: React.FC = () => {
     } catch (error: any) {
       notifications.show({
         title: "Error",
-        message:
-          error.errorMessage ||
-          "Failed to save menu.",
+        message: error.errorMessage || "Failed to save menu.",
         color: "red",
       });
     } finally {
@@ -410,8 +291,7 @@ const MenuManager: React.FC = () => {
   };
 
   const handleAddCategory = async () => {
-    if (!categoryName.trim() || !activeMenu?.id)
-      return;
+    if (!categoryName.trim() || !activeMenu?.id) return;
     setIsSubmitting(true);
     try {
       const newCategoryPayload = {
@@ -420,21 +300,16 @@ const MenuManager: React.FC = () => {
       };
       await addMenuCategory(newCategoryPayload);
       setCategoryName("");
-      await fetchCategoriesForActiveMenu(); // Refetch categories, which will trigger item fetch for the (newly set) first tab
-      // Show success notification
+      await fetchCategoriesForActiveMenu();
     } catch (error) {
-      console.error(
-        "Error adding category:",
-        error
-      );
-      // Show error notification
+      console.error("Error adding category:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handlePublish = async (menu: Menu) => {
-    if (!menu?.id) return; // Now we use the passed menu instead of activeMenu
+    if (!menu?.id) return;
     setIsSubmitting(true);
     try {
       const updatedData = {
@@ -443,7 +318,7 @@ const MenuManager: React.FC = () => {
       };
       console.log(updatedData);
 
-      await updateMenu(menu.id, updatedData); // Update the correct menu
+      await updateMenu(menu.id, updatedData);
 
       notifications.show({
         title: "Menu Published",
@@ -451,104 +326,91 @@ const MenuManager: React.FC = () => {
         color: "green",
       });
 
-      await fetchMenus(); // Refetch menu list
-      // Show success notification
+      await fetchMenus();
     } catch (error) {
-      console.error(
-        "Error publishing menu:",
-        error
-      );
-      // Show error notification
+      console.error("Error publishing menu:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleOpenAddItemModal = (
-    categoryId: string
-  ) => {
-    setSelectedCategoryIdForItem(categoryId); // Set the category ID for the item modal
+  const handleOpenAddItemModal = (categoryId: string) => {
+    setSelectedCategoryIdForItem(categoryId);
     setItemName("");
     setItemDescription("");
     setItemPrice(0);
-    setItemImage(null);
-    setBase64Image(null);
+    setItemImageFile(null); // Clear previous image file
+    setItemImageUrl(null); // Clear previous image URL
     openItemModal();
   };
 
-  const getBase64 = (
-    file: File | null
-  ): Promise<string | null> => {
-    return new Promise((resolve, reject) => {
-      if (!file) {
-        resolve(null);
-        return;
-      }
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () =>
-        resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
-  const handleFileChange = (
-    file: File | null
-  ) => {
-    setItemImage(file);
-    getBase64(file).then(setBase64Image);
+  const handleItemFileChange = (file: File | null) => {
+    setItemImageFile(file);
   };
 
   const handleItemSubmit = async () => {
     if (
-      !selectedCategoryIdForItem || // Use the specific state for the modal
+      !selectedCategoryIdForItem ||
       !activeMenu?.id ||
       !itemName.trim() ||
       itemPrice === null ||
       itemPrice < 0
     ) {
-      console.error(
-        "Missing required item fields, invalid price, or no image selected."
-      );
-      // Show error notification
+      notifications.show({
+        title: "Error",
+        message: "Please fill all required fields (Name, Price) and select a category. Price must be a non-negative number.",
+        color: "red",
+      });
       return;
     }
+  
     setIsSubmitting(true);
+  
     try {
-      const base64Data =
-        base64Image?.split(",")[1];
-      const newItemPayload: Omit<MenuItem, "id"> =
-        {
-          name: itemName,
-          description: itemDescription,
-          price: Number(itemPrice),
-          menuId: activeMenu.id,
-          categoryId: selectedCategoryIdForItem, // Use the correct category ID
-          itemImage: base64Data,
-        };
-      await addMenuItem(newItemPayload);
-
-      // *** Refetch items ONLY for the category we just added to ***
-      // Check if the added item's category is the currently active tab
-      if (
-        selectedCategoryIdForItem ===
-        activeTabCategoryId
-      ) {
-        await fetchItemsForActiveTab(); // Refetch items for the current tab
+      // 👇 Build JS object first
+      const menuItemObj = {
+        name: itemName,
+        description: itemDescription,
+        price: itemPrice,
+        menuId: activeMenu.id,
+        categoryId: selectedCategoryIdForItem,
+      };
+  
+      // 👇 Now convert to FormData and send
+      const formData = new FormData();
+      formData.append("menuItem", JSON.stringify(menuItemObj));
+  
+      if (itemImageFile) {
+        formData.append("image", itemImageFile);
       }
-      // No need to refetch all categories unless the count badge needs update immediately
-
+  
+      await addMenuItem(formData); // Should send multipart/form-data
+  
+      if (selectedCategoryIdForItem === activeTabCategoryId) {
+        await fetchItemsForActiveTab();
+      }
+  
       closeItemModal();
-      setItemImage(null);
-      setBase64Image(null);
-      // Show success notification
-    } catch (error) {
+      setItemImageFile(null);
+      setItemImageUrl(null);
+  
+      notifications.show({
+        title: "Item Added",
+        message: "Menu item added successfully.",
+        color: "green",
+      });
+    } catch (error: any) {
       console.error("Error adding item:", error);
-      // Show error notification
+      notifications.show({
+        title: "Error",
+        message: error?.errorMessage || "Failed to add menu item.",
+        color: "red",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
+  
 
   const handleOnDelete = async () => {
     try {
@@ -573,7 +435,7 @@ const MenuManager: React.FC = () => {
 
   const handleEditMenu = (menu: Menu) => {
     setEditingMenu(menu);
-    setNewMenuName(menu.title); // Prefill the modal input
+    setNewMenuName(menu.title);
     openMenuModal();
   };
 
@@ -593,7 +455,7 @@ const MenuManager: React.FC = () => {
       await deleteCategory(deletingCategory?.id);
       notifications.show({
         title: "Deleted",
-        message: `Category ${deleteCategory.name} Deleted Successfully`,
+        message: `Category ${deletingCategory?.name} Deleted Successfully`,
         color: "green",
       });
     } catch (error) {
@@ -608,9 +470,7 @@ const MenuManager: React.FC = () => {
     await fetchCategoriesForActiveMenu();
   };
 
-  const handleDeleteCateogry = (
-    category: Category
-  ) => {
+  const handleDeleteCateogry = (category: Category) => {
     setDeletingCategory(category);
     openCategoryDeleteModal();
   };
@@ -621,10 +481,7 @@ const MenuManager: React.FC = () => {
         ...editingCategory,
         name: newCategoryName,
       };
-      await updateCategory(
-        editingCategory?.id,
-        updatedCategory
-      );
+      await updateCategory(editingCategory?.id, updatedCategory);
       notifications.show({
         title: "Category Updated",
         message: "Category updated successfully.",
@@ -643,9 +500,7 @@ const MenuManager: React.FC = () => {
     await fetchCategoriesForActiveMenu();
   };
 
-  const handleDeleteMenuItem = (
-    item: MenuItem
-  ) => {
+  const handleDeleteMenuItem = (item: MenuItem) => {
     setItemToDelete(item);
     openDeleteItemModal();
   };
@@ -655,28 +510,24 @@ const MenuManager: React.FC = () => {
     setItemName(item.name);
     setItemDescription(item.description || "");
     setItemPrice(item.price);
-    setBase64Image(item.itemImage || null);
+    setSelectedCategoryIdForItem(item.categoryId);
+    setItemImageUrl(item.itemImage || null); // Set existing image URL for preview
+    setItemImageFile(null); // Clear any potentially pending new file when opening edit
     openEditItemModal();
   };
 
-  const handleOnDeleteItem = async (
-    itemId: string | number
-  ) => {
+  const handleOnDeleteItem = async (itemId: string | number) => {
     setIsSubmitting(true);
     try {
-      await deleteMenuItemService(itemId); // Assuming you have a deleteMenuItem service
+      await deleteMenuItemService(itemId);
       notifications.show({
         title: "Item Deleted",
-        message:
-          "Menu item deleted successfully.",
+        message: "Menu item deleted successfully.",
         color: "green",
       });
-      await fetchItemsForActiveTab(); // Refresh items in the current tab
+      await fetchItemsForActiveTab();
     } catch (error) {
-      console.error(
-        "Error deleting menu item:",
-        error
-      );
+      console.error("Error deleting menu item:", error);
       notifications.show({
         title: "Error",
         message: "Failed to delete menu item.",
@@ -690,83 +541,98 @@ const MenuManager: React.FC = () => {
   };
 
   const handleOnEditItemSubmit = async () => {
-    if (!itemToEdit) return; // Ensure we have an item to edit
-
-    setIsSubmitting(true);
-    try {
-      const base64Data =
-        base64Image?.split(",")[1];
-      const updatedItem: Omit<MenuItem, "id"> & {
-        id: string | number;
-      } = {
-        id: itemToEdit.id,
-        name: itemName,
-        description: itemDescription,
-        price:
-          itemPrice !== null
-            ? Number(itemPrice)
-            : 0,
-        menuId: itemToEdit.menuId, // Keep original
-        categoryId: itemToEdit.categoryId, // Keep original
-        itemImage: base64Data,
-        // You might need to handle itemImageBytes if you're storing both
-      };
-      await updateMenuItemService(
-        updatedItem.id,
-        updatedItem
-      );
-      notifications.show({
-        title: "Item Updated",
-        message:
-          "Menu item updated successfully.",
-        color: "green",
-      });
-      await fetchItemsForActiveTab();
-    } catch (error) {
-      console.error(
-        "Error updating menu item:",
-        error
-      );
+    if (
+      !itemToEdit?.id ||
+      !selectedCategoryIdForItem ||
+      !activeMenu?.id ||
+      !itemName.trim() ||
+      itemPrice === null ||
+      itemPrice < 0
+    ) {
       notifications.show({
         title: "Error",
-        message: "Failed to update menu item.",
+        message:
+          "Please fill all required fields (Name, Price) and select a category. Price must be a non-negative number.",
+        color: "red",
+      });
+      return;
+    }
+  
+    setIsSubmitting(true);
+  
+    try {
+      //  Build the updated object
+      const updatedItem = {
+        name: itemName,
+        description: itemDescription,
+        price: itemPrice,
+        menuId: activeMenu.id,
+        categoryId: selectedCategoryIdForItem,
+      };
+  
+      // Prepare form data for multipart request
+      const formData = new FormData();
+      formData.append("menuItem", JSON.stringify(updatedItem));
+  
+      //  Attach new image only if changed
+      if (itemImageFile) {
+        formData.append("image", itemImageFile);
+      }
+  
+      // Call update API
+      await updateMenuItemService(itemToEdit.id, formData);
+  
+      //  Refetch updated items
+      // if (selectedCategoryIdForItem === activeTabCategoryId) {
+      //   await fetchItemsForActiveTab();
+      // }
+      fetchItemsForActiveTab();
+  
+      // Reset form and close modal
+      closeEditItemModal();
+      setItemToEdit(null);
+      setItemImageFile(null);
+      setItemImageUrl(null);
+  
+      notifications.show({
+        title: "Item Updated",
+        message: "Menu item updated successfully.",
+        color: "green",
+      });
+    } catch (error: any) {
+      console.error("Error updating item:", error);
+      notifications.show({
+        title: "Error",
+        message: error?.errorMessage || "Failed to update menu item.",
         color: "red",
       });
     } finally {
       setIsSubmitting(false);
-      closeEditItemModal();
-      setItemToEdit(null);
-      setBase64Image(null);
     }
   };
-
-  // --- Render Logic ---
+  
 
   return (
-    <Container
-      size="lg"
-      py="xl"
-    >
+    <Container size="lg" py="xl">
       <Stack gap="xl">
         {/* Header and Add Menu Button */}
         <MenuHeader
           hotelId={hotelId}
           isLoading={isInitialLoading}
-          onClick={openMenuModal}
+          onClick={() => {
+            if (hotel?.planId === null) {
+              navigate('/pricing')
+            } else {
+              openMenuModal()
+            }
+          }}
         />
 
         {/* Loading/Empty States */}
-        <LoadingOverlay
-          visible={isInitialLoading}
-          overlayProps={{ radius: "sm", blur: 2 }}
-        />
+        <LoadingOverlay visible={isInitialLoading} overlayProps={{ radius: "sm", blur: 2 }} />
 
         {!isInitialLoading && !hotelId && (
-          <Alert
-            icon={<IconAlertCircle size="1rem" />}
-            title="Hotel Not Found"
-            color="orange"
-          >
+          <Alert icon={<IconAlertCircle size="1rem" />} title="Hotel Not Found" color="orange">
             Could not find an associated hotel.
             Please ensure your profile is linked.
           </Alert>
@@ -776,7 +642,13 @@ const MenuManager: React.FC = () => {
           hotelId &&
           menus.length === 0 && (
             <EmptyMenuNotice
-              onClick={openMenuModal}
+              onClick={() => {
+                if (hotel?.planId === null) {
+                  navigate('/pricing')
+                } else {
+                  openMenuModal()
+                }
+              }}
             />
           )}
 
@@ -911,35 +783,27 @@ const MenuManager: React.FC = () => {
                   </Text>
                 ) : (
                   <Tabs
-                    // Controlled component: value is state, onChange updates state
-                    value={activeTabCategoryId} // Controlled by state
+                    value={activeTabCategoryId}
                     onChange={
                       setActiveTabCategoryId
-                    } // Update state on tab change -> triggers item fetch effect
+                    }
                     keepMounted={false}
                   >
                     <Tabs.List>
                       {categories.map((cat) => (
                         <Tabs.Tab
                           key={cat.id}
-                          value={String(cat.id)} // Value must be string
-                          // Optional: Show loading indicator on the specific tab being loaded
-                          // rightSection={isItemLoading && activeTabCategoryId === String(cat.id) ? <Loader size="xs" /> : null}
+                          value={String(cat.id)}
                         >
                           {cat.name}
-                          {/* Item count badge is tricky now as items load separately.
-                                                    Could show count once loaded, or remove it. */}
-                          {/* <Badge size="xs" circle ml="xs">{activeTabCategoryId === String(cat.id) ? activeCategoryItems.length : '?'}</Badge> */}
                         </Tabs.Tab>
                       ))}
                     </Tabs.List>
 
-                    {/* Render only ONE panel's content: the active one */}
-                    {/* We find the active category and render its items */}
                     {categories.map((cat) => (
                       <Tabs.Panel
                         key={cat.id}
-                        value={String(cat.id)} // Value must be string
+                        value={String(cat.id)}
                         pt="lg"
                       >
                         <Stack gap="md">
@@ -1039,7 +903,7 @@ const MenuManager: React.FC = () => {
         )}
       </Stack>
 
-      {/* --- Modals (Unchanged, ensure IDs are handled correctly) --- */}
+      {/* --- Modals --- */}
 
       <EditCategoryModal
         opened={categoryModalOpened}
@@ -1101,10 +965,11 @@ const MenuManager: React.FC = () => {
         onClose={() => {
           closeEditItemModal();
           setItemToEdit(null);
-          setBase64Image(null);
           setItemName("");
           setItemDescription("");
           setItemPrice(null);
+          setItemImageFile(null); // Clear file input
+          setItemImageUrl(null); // Clear preview
         }}
         onSubmit={handleOnEditItemSubmit}
         isSubmitting={isSubmitting}
@@ -1114,9 +979,9 @@ const MenuManager: React.FC = () => {
         setItemDescription={setItemDescription}
         itemPrice={itemPrice}
         setItemPrice={setItemPrice}
-        onFileChange={handleFileChange}
-        base64Image={base64Image}
-        initialItem={itemToEdit} // Pass the item being edited
+        onFileChange={handleItemFileChange} // Pass the handler for file input
+        itemImage={itemImageUrl} // Pass the URL for preview
+        initialItem={itemToEdit}
       />
 
       <AddItemModal
@@ -1130,8 +995,8 @@ const MenuManager: React.FC = () => {
         itemDescription={itemDescription}
         itemPrice={itemPrice}
         setItemPrice={setItemPrice}
-        onFileChange={handleFileChange}
-        base64Image={base64Image}
+        onFileChange={handleItemFileChange} // Pass the handler for file input
+        itemImage={itemImageUrl} // Pass the URL for preview
       />
     </Container>
   );
