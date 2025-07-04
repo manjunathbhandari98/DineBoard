@@ -1,4 +1,4 @@
-// QRCodes.tsx
+
 import {
   ActionIcon,
   Button,
