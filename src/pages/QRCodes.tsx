@@ -1,44 +1,43 @@
 // QRCodes.tsx
 import {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
-import {
-  Container,
-  Title,
-  Text,
-  Select,
-  Input,
-  Loader,
-  Group,
+  ActionIcon,
   Button,
   Card,
-  Image,
-  ActionIcon,
-  Tooltip,
+  Container,
   Flex,
+  Group,
+  Image,
+  Input,
+  Loader,
   Modal,
+  Select,
+  Text,
+  Title,
+  Tooltip,
 } from "@mantine/core";
 import {
   IconDownload,
-  IconQrcode,
   IconEdit,
   IconTrash,
 } from "@tabler/icons-react";
-import { QRCodeSVG } from "qrcode.react";
 import { toPng } from "html-to-image";
-import { getHotelByUser } from "../service/hotelService";
-import { getProfileInfo } from "../service/userService";
+import { QRCodeSVG } from "qrcode.react";
 import {
-  saveQRCode,
-  getQRCodes,
-  updateQRCodeLabel,
-  deleteQRCode,
-} from "../service/qrService";
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { getHotelByUser } from "../service/hotelService";
 import { getMenu } from "../service/menuService";
+import {
+  deleteQRCode,
+  getQRCodes,
+  saveQRCode,
+  updateQRCodeLabel,
+} from "../service/qrService";
 import { getSettings } from "../service/settingService";
+import { getProfileInfo } from "../service/userService";
 
 interface QRCodeItem {
   id: string;

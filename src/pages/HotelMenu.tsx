@@ -46,8 +46,7 @@ import {
   Hotel,
   Menu,
   MenuCategory,
-  MenuItem,
-  Profile,
+  MenuItem
 } from "../interface";
 import { getHotelByUser } from "../service/hotelService";
 import {
@@ -74,7 +73,6 @@ const MenuManager: React.FC = () => {
   const [menus, setMenus] = useState<Menu[]>([]);
   const [activeMenu, setActiveMenu] = useState<Menu | null>(null);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [hotelId, setHotelId] = useState<string | null>(null);
 
   // Loading states
@@ -137,7 +135,7 @@ const MenuManager: React.FC = () => {
     setIsInitialLoading(true);
     try {
       const profileData = await getProfileInfo();
-      setProfile(profileData);
+    
       if (profileData?.id) {
         const hotelData = await getHotelByUser(profileData.id);
         setHotel(hotelData);

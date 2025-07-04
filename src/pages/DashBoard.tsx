@@ -1,15 +1,13 @@
 import {
   Card,
-  Title,
   Text,
-  Table,
-  Group,
+  Title,
 } from "@mantine/core";
 import {
-  IconMenu2,
   IconCategory,
-  IconEye,
   IconDeviceMobile,
+  IconEye,
+  IconMenu2,
 } from "@tabler/icons-react";
 import {
   useCallback,
@@ -17,14 +15,13 @@ import {
   useState,
 } from "react";
 import { getHotelByUser } from "../service/hotelService";
-import { getProfileInfo } from "../service/userService";
-import { setProfile } from "../slice/userSlice";
-import { Menu } from "../interface";
 import {
   getCategoryByMenu,
   getMenu,
   getMenuItems,
 } from "../service/menuService";
+import { getProfileInfo } from "../service/userService";
+import { setProfile } from "../slice/userSlice";
 
 const Dashboard = () => {
   const [hotelId, setHotelId] = useState();

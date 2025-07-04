@@ -89,7 +89,7 @@ const Pricing = () => {
         description: `Subscribe to ${planName}`,
         order_id: order.id,
   
-        handler: async function (response: any) {
+        handler: async function () {
           try {
             // 👉 (Optional) Verify payment here using verifyOrder() if implemented
             await subscribePlan(hotelId, planId); // Update hotel’s subscribed plan

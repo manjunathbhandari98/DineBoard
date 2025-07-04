@@ -1,7 +1,3 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
 import {
   Card,
   Grid,
@@ -10,6 +6,10 @@ import {
   Text,
   Title,
 } from "@mantine/core";
+import React, {
+  useEffect,
+  useState,
+} from "react";
 import { useParams } from "react-router-dom";
 import {
   getCategoryByMenu,
@@ -60,31 +60,42 @@ const PreviewMenu: React.FC<
 
   useEffect(() => {
     const fetchMenu = async () => {
-      if (id) {
+      try {
         setLoading(true);
-        const response = await getMenuById(id);
-        setMenus(response);
-      } else {
-        setError("No menu ID provided.");
+        if (id) {
+          const response = await getMenuById(id);
+          setMenus(response);
+        } else {
+          throw new Error("No menu ID provided.");
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch menu.");
+      } finally {
         setLoading(false);
       }
     };
     fetchMenu();
   }, [id]);
-
+  
   useEffect(() => {
     const fetchMenuItems = async () => {
-      if (id) {
+      try {
         setLoading(true);
-        const response = await getMenuItems(id);
-        setMenuItems(response);
-      } else {
-        setError("No menu ID provided.");
+        if (id) {
+          const response = await getMenuItems(id);
+          setMenuItems(response);
+        } else {
+          throw new Error("No menu ID provided.");
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch menu items.");
+      } finally {
         setLoading(false);
       }
     };
     fetchMenuItems();
   }, [categoryId, id, menus]);
+  
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -98,27 +109,20 @@ const PreviewMenu: React.FC<
 
   return (
     <div className="p-6">
-      <Title
-        order={2}
-        className="mb-6"
-      >
+      <Title order={2} className="mb-6">
         Menu Preview
       </Title>
-
-      {publishedMenus.length === 0 ? (
-        <Text>
-          No published menus to preview.
-        </Text>
+  
+      {loading ? (
+        <Text>Loading...</Text> // You can use Mantine's Loader here instead
+      ) : error ? (
+        <Text c="red">{error}</Text>
+      ) : publishedMenus.length === 0 ? (
+        <Text>No published menus to preview.</Text>
       ) : (
         publishedMenus.map((menu: any) => (
-          <div
-            key={menu.name}
-            className="mb-12"
-          >
-            <Title
-              order={3}
-              className="mb-4"
-            >
+          <div key={menu.name} className="mb-12">
+            <Title order={3} className="mb-4">
               {menu.name}
             </Title>
             <Tabs defaultValue={categories[0]}>
@@ -127,39 +131,24 @@ const PreviewMenu: React.FC<
                   <Tabs.Tab
                     key={cat}
                     value={cat}
-                    onClick={() =>
-                      setCategoryId(cat.id)
-                    }
+                    onClick={() => setCategoryId(cat.id)}
                   >
                     {cat}
                   </Tabs.Tab>
                 ))}
               </Tabs.List>
-
+  
               {categories.map((cat) => (
-                <Tabs.Panel
-                  key={cat}
-                  value={cat}
-                  pt="sm"
-                >
+                <Tabs.Panel key={cat} value={cat} pt="sm">
                   <Grid>
                     {menuItems
                       .filter(
                         (item) =>
-                          item.menu ===
-                            menu.name &&
-                          item.category === cat
+                          item.menu === menu.name && item.category === cat
                       )
                       .map((item) => (
-                        <Grid.Col
-                          key={item.id}
-                          span={4}
-                        >
-                          <Card
-                            withBorder
-                            radius="md"
-                            p="md"
-                          >
+                        <Grid.Col key={item.id} span={4}>
+                          <Card withBorder radius="md" p="md">
                             <Card.Section>
                               {item.image ? (
                                 <Image
@@ -173,24 +162,13 @@ const PreviewMenu: React.FC<
                                 </div>
                               )}
                             </Card.Section>
-                            <Text
-                              fw={500}
-                              size="lg"
-                              mt="md"
-                            >
+                            <Text fw={500} size="lg" mt="md">
                               {item.name}
                             </Text>
-                            <Text
-                              size="sm"
-                              c="dimmed"
-                              mt={5}
-                            >
+                            <Text size="sm" c="dimmed" mt={5}>
                               {item.description}
                             </Text>
-                            <Text
-                              fw={700}
-                              mt="md"
-                            >
+                            <Text fw={700} mt="md">
                               ₹{item.price}
                             </Text>
                           </Card>
@@ -205,6 +183,7 @@ const PreviewMenu: React.FC<
       )}
     </div>
   );
+  
 };
 
 export default PreviewMenu;
