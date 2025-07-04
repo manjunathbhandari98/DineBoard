@@ -1,4 +1,4 @@
-import { Menu, Text } from "@mantine/core";
+import { Menu } from "@mantine/core";
 import { IconLanguage } from "@tabler/icons-react";
 
 const LanguageMenu = () => {

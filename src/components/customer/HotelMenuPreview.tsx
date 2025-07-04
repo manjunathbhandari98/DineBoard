@@ -1,30 +1,29 @@
-import React, {
+import {
+  Card,
+  Container,
+  Grid,
+  Image,
+  Input,
+  Loader,
+  SegmentedControl,
+  Text,
+  Title,
+} from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
+import { IconSearch } from "@tabler/icons-react";
+import {
   useEffect,
   useState,
 } from "react";
-import {
-  Input,
-  SegmentedControl,
-  Card,
-  Image,
-  Text,
-  Title,
-  Container,
-  Grid,
-  Loader,
-} from "@mantine/core";
-import { IconSearch } from "@tabler/icons-react";
-import LanguageMenu from "../LanguageMenu";
-import {
-  getMenuById,
-  getMenuItems,
-  getCategoryByMenu,
-  trackMenuView,
-} from "../../service/menuService";
 import { useParams } from "react-router-dom";
 import { getHotelById } from "../../service/hotelService";
-import { useMediaQuery } from "@mantine/hooks";
-import { getOrCreateDeviceId } from "../../utils/deviceId";
+import {
+  getCategoryByMenu,
+  getMenuById,
+  getMenuItems,
+  trackMenuView,
+} from "../../service/menuService";
+import LanguageMenu from "../LanguageMenu";
 
 const HotelMenuPreview = () => {
   const { id } = useParams();

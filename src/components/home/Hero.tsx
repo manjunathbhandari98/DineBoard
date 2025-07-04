@@ -1,25 +1,17 @@
-import { useState } from "react";
-import Button from "../ui/Button";
 import { useThemeContext } from "../../app/ThemeProvider";
 
 const Hero = () => {
-  const [loggedIn, setLoggedIn] = useState(true);
   const { colorScheme } = useThemeContext();
+
   return (
     <section className="relative w-full overflow-hidden pb-0">
       {/* Top Section with Wave */}
       <div className="relative z-10 pb-32 pt-16 px-4 md:px-16 ">
         <div className="text-center max-w-3xl mx-auto">
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight">
-            <span className="text-gray-400">
-              Create.{" "}
-            </span>
-            <span className="text-gray-500">
-              Update.{" "}
-            </span>
-            <span className="text-gray-600">
-              Serve.{" "}
-            </span>
+            <span className="text-gray-400">Create.{" "}</span>
+            <span className="text-gray-500">Update.{" "}</span>
+            <span className="text-gray-600">Serve.{" "}</span>
             <br />
             <span
               className={`${
@@ -32,17 +24,6 @@ const Hero = () => {
             </span>
             <br />
           </h2>
-          {!loggedIn && (
-            <div className="mt-8">
-              <Button
-                size="lg"
-                radius="xl"
-                className="font-medium"
-              >
-                Book Now →
-              </Button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -54,10 +35,7 @@ const Hero = () => {
           className="w-full object-cover max-h-[600px] block"
         />
         <div className="absolute -top-5 -left-1 right-0 w-screen overflow-hidden line-height-0 transform rotate-180">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 1440 320"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
             <path
               fill={`${
                 colorScheme === "dark"

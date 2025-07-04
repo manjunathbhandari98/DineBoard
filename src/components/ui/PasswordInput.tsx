@@ -1,5 +1,5 @@
-import React, { useState } from "react"; // You can replace this with your icon library of choice
 import { Eye, EyeOff } from "lucide-react";
+import React from "react"; // You can replace this with your icon library of choice
 
 interface PasswordInputProps
   extends Omit<

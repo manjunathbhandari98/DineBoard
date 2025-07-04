@@ -3,7 +3,6 @@ import {
   IconPrinter,
   IconProgressCheck,
   IconQrcode,
-  IconUpload,
 } from "@tabler/icons-react";
 
 const HowItWorks = () => {
