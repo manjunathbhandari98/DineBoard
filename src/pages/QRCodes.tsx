@@ -38,7 +38,7 @@ import {
 } from "../service/qrService";
 import { getSettings } from "../service/settingService";
 import { getProfileInfo } from "../service/userService";
-
+const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
 interface QRCodeItem {
   id: string;
   hotelId?: string;
@@ -87,7 +87,7 @@ const QRCodes = () => {
     useState(false);
 
   const qrValue = selectedQRCode
-    ? `http://192.168.1.10:5173/customer-menu/${
+    ? `${FRONTEND_URL}/customer-menu/${
         selectedQRCode.startsWith("temp")
           ? selectedQRCode.replace("temp-", "")
           : qrCodes.find(
