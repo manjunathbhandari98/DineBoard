@@ -11,7 +11,6 @@ import {
   IconLogout,
   IconMenuDeep,
   IconPlanet,
-  IconSettings,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import {

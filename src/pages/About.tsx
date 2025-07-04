@@ -1,4 +1,4 @@
-import { IconBolt, IconLanguageHiragana, IconMap, IconPhone, IconQrcode } from "@tabler/icons-react";
+import { IconBolt, IconLanguageHiragana, IconPhone, IconQrcode } from "@tabler/icons-react";
 
 
 const About = () => {

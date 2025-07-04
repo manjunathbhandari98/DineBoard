@@ -1,20 +1,19 @@
 /* eslint-disable react-refresh/only-export-components */
 // ThemeProvider.tsx
 import {
+  ColorSchemeScript,
   createTheme,
   MantineProvider,
-  ColorSchemeScript,
 } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import {
-  useState,
-  useEffect,
   createContext,
   useContext,
+  useEffect,
+  useState,
 } from "react";
-import { getSettings } from "../service/settingService";
-import { useSelector } from "react-redux";
 import { getHotelByUser } from "../service/hotelService";
+import { getSettings } from "../service/settingService";
 import { getProfileInfo } from "../service/userService";
 // Define the context type
 type ThemeContextType = {
