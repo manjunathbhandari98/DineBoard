@@ -1,34 +1,47 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
   getToken,
-  setToken,
   removeToken,
+  setToken,
 } from "../service/localStorageService";
 
+const TOKEN_KEY = "authToken";
+
 const initialState = {
-  token: getToken("authToken") || null,
+  token: getToken(TOKEN_KEY) || null,
   profile: null,
+  isAuthenticated: !!getToken(TOKEN_KEY),
 };
 
 const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    setUser: (state, action) => {
-      state.token = action.payload;
-      setToken("authToken", action.payload); // use consistent key
+    // Called after login success
+    setUserSession: (state, action) => {
+      const { token, profile } = action.payload;
+      state.token = token;
+      state.profile = profile;
+      state.isAuthenticated = true;
+      setToken(TOKEN_KEY, token);
     },
+
+    // Update user profile data (e.g., after editing)
     setProfile: (state, action) => {
       state.profile = action.payload;
     },
-    removeUser: (state) => {
-      removeToken("authToken"); // use consistent key
+
+    // Called on logout
+    clearUserSession: (state) => {
+      removeToken(TOKEN_KEY);
       state.token = null;
       state.profile = null;
+      state.isAuthenticated = false;
     },
   },
 });
 
-export const { setUser, setProfile, removeUser } =
+export const { setUserSession, setProfile, clearUserSession } =
   userSlice.actions;
+
 export default userSlice.reducer;

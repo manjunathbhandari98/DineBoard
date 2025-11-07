@@ -1,148 +1,102 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
-import {
-  getProfileInfo,
-  loginUser,
-} from "../../service/userService"; // Keep your service import
-import {
-  setProfile,
-  setUser,
-} from "../../slice/userSlice"; // Keep your Redux slice import
-
-import Button from "../ui/Button";
-import {
-  Loader,
-  PasswordInput,
-  TextInput,
-} from "@mantine/core";
+import { Loader, PasswordInput, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { getProfileInfo, loginUser } from "../../service/userService";
+import { setProfile, setUserSession } from "../../slice/userSlice";
+import Button from "../ui/Button";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [
-    isPasswordVisible,
-    setIsPasswordVisible,
-  ] = useState(false); // Replaces useDisclosure
-  const [isLoading, setIsLoading] =
-    useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const togglePasswordVisibility = () => {
-    setIsPasswordVisible(!isPasswordVisible);
-  };
-
-  const handleLogin = async (
-    e: React.FormEvent
-  ) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Consider adding basic client-side validation here if needed
     setIsLoading(true);
-    try {
-      const userData = {
-        email: email,
-        password: password,
-      };
-      const response = await loginUser(userData);
 
-      const token = response;
-      dispatch(setUser(token));
+    try {
+      const credentials = { email, password };
+      const response = await loginUser(credentials);
+
+      // Example expected API response from backend:
+      // { id, name, email, jwt }
+      const token = response.jwt;
+
+      // Save token to redux + localStorage
+      dispatch(setUserSession({ token, profile: null }));
+
+      // Fetch and store user profile
       const profile = await getProfileInfo();
       dispatch(setProfile(profile));
 
-      // --- Notification ---
-      setIsLoading(false);
       notifications.show({
         title: "Login Successful",
-        message: "Welcome Back",
+        message: `Welcome back, ${profile?.name || "User"}!`,
         color: "green",
       });
 
-      navigate("/dashboard"); // Redirect to the dashboard
+      navigate("/dashboard");
     } catch (error: any) {
-      setIsLoading(false);
       notifications.show({
         title: "Login Failed",
-        // Try to display a more specific error message if available
         message:
           error?.response?.data?.message ||
-          "Oops! Login Failed",
+          error?.message ||
+          "Oops! Something went wrong.",
         color: "red",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <>
-      <form
-        onSubmit={handleLogin}
-        className="space-y-6"
-      >
-        {" "}
-        {/* Add spacing between elements */}
-        {/* Email Input */}
-        <TextInput
-          label="Email"
-          id="email"
-          name="email"
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) =>
-            setEmail(e.target.value)
-          }
-          required
-        />
-        {/* Password Input */}
-        <PasswordInput
-          id="password"
-          label="Password"
-          name="password"
-          value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
-          visible={isPasswordVisible}
-          onVisibilityChange={
-            togglePasswordVisibility
-          }
-          placeholder="Enter your password"
-          required
-        />
-        {/* Submit Button */}
-        <div>
-          {" "}
-          {/* Optional div wrapper for spacing/layout */}
-          <Button
-            type="submit"
-            size="md"
-            variant="filled"
-            fullWidth
-          >
-            {isLoading ? <Loader /> : "Login"}
-          </Button>
-        </div>
-        {/* Forgot Password Link */}
-        <div className="text-center">
-          {" "}
-          {/* Removed mt-4 as form now has space-y-6 */}
-          <button
-            type="button" // Important: type="button" to prevent form submission
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-500 cursor-pointer focus:outline-none"
-            onClick={() =>
-              navigate(
-                "/auth?mode=forgot-password"
-              )
-            } // Navigate to forgot-password page
-          >
-            Forgot Password?
-          </button>
-        </div>
-      </form>
-    </>
+    <form onSubmit={handleLogin} className="space-y-6">
+      {/* Email Input */}
+      <TextInput
+        label="Email"
+        id="email"
+        name="email"
+        type="email"
+        placeholder="Enter your email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+
+      {/* Password Input */}
+      <PasswordInput
+        id="password"
+        label="Password"
+        name="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Enter your password"
+        required
+      />
+
+      {/* Submit Button */}
+      <Button type="submit" size="md" variant="filled" fullWidth>
+        {isLoading ? <Loader size="sm" color="white" /> : "Login"}
+      </Button>
+
+      {/* Forgot Password */}
+      <div className="text-center">
+        <button
+          type="button"
+          className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+          onClick={() => navigate("/auth?mode=forgot-password")}
+        >
+          Forgot Password?
+        </button>
+      </div>
+    </form>
   );
 };
 

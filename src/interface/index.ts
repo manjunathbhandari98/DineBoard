@@ -9,8 +9,8 @@ export interface MenuItem {
 }
 
 export interface MenuCategory {
-  id: string; // Or number
-  name: string;
+  categoryId: string; // Or number
+  categoryName: string;
   menuId: string; // Or number
 }
 
@@ -32,11 +32,6 @@ export interface Hotel {
   // other hotel fields...
 }
 
-export interface Category {
-  id: any;
-  name: string;
-  menuId: string;
-}
 
 export interface Plan {
   id: any;

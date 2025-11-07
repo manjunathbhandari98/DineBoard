@@ -4,19 +4,16 @@ import {
   FileInput,
   Image,
   Modal,
+  Stack,
   Textarea,
   TextInput,
 } from "@mantine/core";
-import { MenuItem } from "../../interface"; // Adjust the import path as needed
+import { MenuItem } from "../../interface";
 
 interface EditMenuItemModalProps {
   opened: boolean;
   onClose: () => void;
-  onSubmit: (
-    updatedItem: Omit<MenuItem, "id"> & {
-      id: string | number;
-    }
-  ) => void;
+  onSubmit: () => void; // Changed to match parent's handler signature
   isSubmitting: boolean;
   itemName: string;
   setItemName: (val: string) => void;
@@ -26,7 +23,7 @@ interface EditMenuItemModalProps {
   setItemPrice: (val: number | null) => void;
   onFileChange: (file: File | null) => void;
   itemImage?: string | null;
-  initialItem?: MenuItem | null; // Optional: to prefill data
+  initialItem?: MenuItem | null;
 }
 
 export default function EditMenuItemModal({
@@ -44,90 +41,78 @@ export default function EditMenuItemModal({
   itemImage,
   initialItem,
 }: EditMenuItemModalProps) {
-
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.currentTarget.value;
+    if (value === "") {
+      setItemPrice(null);
+    } else {
+      const parsed = parseFloat(value);
+      setItemPrice(isNaN(parsed) ? null : parsed);
+    }
+  };
 
   return (
     <Modal
       opened={opened}
       onClose={onClose}
-      title={
-        initialItem
-          ? `Edit "${initialItem.name}"`
-          : "Edit Item"
-      }
+      title={initialItem ? `Edit "${initialItem.name}"` : "Edit Item"}
       centered
+      size="md"
     >
-      <TextInput
-        label="Item Name"
-        value={itemName}
-        onChange={(e) =>
-          setItemName(e.currentTarget.value)
-        }
-      />
-      <Textarea
-        label="Description"
-        value={itemDescription}
-        onChange={(e) =>
-          setItemDescription(
-            e.currentTarget.value
-          )
-        }
-      />
-      <TextInput
-        label="Price"
-        type="number"
-        value={
-          itemPrice !== null ? itemPrice : ""
-        }
-        onChange={(e) =>
-          setItemPrice(
-            parseFloat(e.currentTarget.value)
-          )
-        }
-      />
-      <FileInput
-        label="Upload New Image (Optional)"
-        onChange={onFileChange}
-        accept="image/*"
-      />
-      {itemImage && (
-        <Image
-          src={itemImage}
-          alt="Preview"
-          style={{
-            marginTop: 10,
-            maxHeight: 150,
-            borderRadius: 8,
-          }}
+      <Stack gap="md">
+        <TextInput
+          label="Item Name"
+          placeholder="Enter item name"
+          value={itemName}
+          onChange={(e) => setItemName(e.currentTarget.value)}
+          required
         />
-      )}
-      <Button
-  mt="md"
-  fullWidth
-  onClick={() => {
-    console.log("Save button clicked!"); // Check if this logs
-  console.log("initialItem in modal:")
-    
-    if (initialItem) {
-      const updatedItem = {
-        id: initialItem.id,
-        name: itemName,
-        description: itemDescription,
-        price: itemPrice !== null ? Number(itemPrice) : 0,
-        menuId: initialItem.menuId,
-        categoryId: initialItem.categoryId,
-        itemImage: itemImage,
-      };
-      onSubmit(updatedItem); 
-    }else {
-      console.warn("initialItem is null or undefined. Cannot submit.");
-    }
-  }}
-  loading={isSubmitting}
->
-  {isSubmitting ? "Saving..." : "Save Changes"}
-</Button>
-
+        <Textarea
+          label="Description"
+          placeholder="Enter item description (optional)"
+          value={itemDescription}
+          onChange={(e) => setItemDescription(e.currentTarget.value)}
+          minRows={3}
+        />
+        <TextInput
+          label="Price"
+          type="number"
+          placeholder="0.00"
+          value={itemPrice !== null ? itemPrice : ""}
+          onChange={handlePriceChange}
+          min={0}
+          step={0.01}
+          required
+        />
+        <FileInput
+          label="Upload New Image (Optional)"
+          placeholder="Choose an image file to replace existing"
+          onChange={onFileChange}
+          accept="image/*"
+        />
+        {itemImage && (
+          <Image
+            src={itemImage}
+            alt="Item preview"
+            style={{
+              marginTop: 10,
+              maxHeight: 200,
+              borderRadius: 8,
+              border: "1px solid #e0e0e0",
+            }}
+            fit="cover"
+          />
+        )}
+        <Button
+          mt="md"
+          fullWidth
+          onClick={onSubmit}
+          loading={isSubmitting}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Saving..." : "Save Changes"}
+        </Button>
+      </Stack>
     </Modal>
   );
 }

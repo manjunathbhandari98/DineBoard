@@ -205,29 +205,51 @@ export const deleteCategory = async (categoryId: any) => {
   }
 };
 
-export const addMenuItem = async (menuItem: any) => {
+export const addMenuItem = async (menuItemData: any) => {
   try {
-    const response = await axios.post(`${BASE_URL}/menu-item`, menuItem, {
+    const response = await axios.post(`${BASE_URL}/menu-items`, menuItemData, {
       headers: {
         Authorization: `Bearer ${getToken("authToken")}`,
         "Content-Type": "multipart/form-data",
       },
     });
+    
+    // Check for success flag in response
+    if (response.data.success === false) {
+      throw {
+        errorMessage: response.data.message || "Failed to add menu item",
+      };
+    }
+    
     return response.data;
   } catch (e) {
+    if (axios.isAxiosError(e)) {
+      console.error("Axios error adding menu item:", e.response?.data);
+      throw (
+        e.response?.data || {
+          errorMessage: "Can't add menu item",
+        }
+      );
+    }
+    console.error("Unexpected error adding menu item:", e);
     throw {
-      message: "An unexpected error occured",
+      errorMessage: "An unexpected error occurred while adding menu item",
     };
   }
 };
 
 export const getMenuItems = async (menuId: any) => {
   try {
-    const response = await axios.get(`${BASE_URL}/menu-item/menu/${menuId}`);
+    const response = await axios.get(`${BASE_URL}/menu-items/menu/${menuId}`, {
+      headers: {
+        Authorization: `Bearer ${getToken("authToken")}`,
+      },
+    });
     return response.data;
   } catch (error) {
+    console.error("Error fetching menu items:", error);
     throw {
-      message: "An Unexpected error occured",
+      message: "An unexpected error occurred while fetching menu items",
     };
   }
 };
@@ -235,12 +257,18 @@ export const getMenuItems = async (menuId: any) => {
 export const getMenuItemsByCategory = async (menuId: any, categoryId: any) => {
   try {
     const response = await axios.get(
-      `${BASE_URL}/menu-item/menu/${menuId}/${categoryId}`
+      `${BASE_URL}/menu-items/menu/${menuId}/category/${categoryId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${getToken("authToken")}`,
+        },
+      }
     );
     return response.data;
   } catch (error) {
+    console.error("Error fetching menu items by category:", error);
     throw {
-      message: "An Unexpected error occured",
+      message: "An unexpected error occurred while fetching menu items",
     };
   }
 };
@@ -248,7 +276,7 @@ export const getMenuItemsByCategory = async (menuId: any, categoryId: any) => {
 export const updateMenuItemService = async (menuItemId: any, data: any) => {
   try {
     const response = await axios.put(
-      `${BASE_URL}/menu-item/${menuItemId}`,
+      `${BASE_URL}/menu-items/${menuItemId}`,
       data,
       {
         headers: {
@@ -257,25 +285,59 @@ export const updateMenuItemService = async (menuItemId: any, data: any) => {
         },
       }
     );
+    
+    // Check for success flag in response
+    if (response.data.success === false) {
+      throw {
+        errorMessage: response.data.message || "Failed to update menu item",
+      };
+    }
+    
     return response.data;
   } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error updating menu item:", error.response?.data);
+      throw (
+        error.response?.data || {
+          errorMessage: "Can't update menu item",
+        }
+      );
+    }
+    console.error("Unexpected error updating menu item:", error);
     throw {
-      message: "An Unexpected error occured",
+      errorMessage: "An unexpected error occurred while updating menu item",
     };
   }
 };
 
 export const deleteMenuItemService = async (menuItemId: any) => {
   try {
-    const response = await axios.delete(`${BASE_URL}/menu-item/${menuItemId}`, {
+    const response = await axios.delete(`${BASE_URL}/menu-items/${menuItemId}`, {
       headers: {
         Authorization: `Bearer ${getToken("authToken")}`,
       },
     });
+    
+    // Check for success flag in response
+    if (response.data.success === false) {
+      throw {
+        errorMessage: response.data.message || "Failed to delete menu item",
+      };
+    }
+    
     return response.data;
   } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error deleting menu item:", error.response?.data);
+      throw (
+        error.response?.data || {
+          errorMessage: "Can't delete menu item",
+        }
+      );
+    }
+    console.error("Unexpected error deleting menu item:", error);
     throw {
-      message: "An Unexpected error occured",
+      errorMessage: "An unexpected error occurred while deleting menu item",
     };
   }
 };

@@ -1,10 +1,4 @@
-import {
-  Avatar,
-  Card,
-  Group,
-  Menu,
-  Modal,
-} from "@mantine/core";
+import { Avatar, Card, Group, Menu, Modal } from "@mantine/core";
 import {
   IconBuildingSkyscraper,
   IconCircleDottedLetterH,
@@ -13,21 +7,13 @@ import {
   IconPlanet,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
-import {
-  useDispatch,
-  useSelector,
-} from "react-redux";
-import {
-  Link,
-  useNavigate,
-} from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
 import { useThemeContext } from "../app/ThemeProvider";
 import { useHotel } from "../context/HotelContext";
 import { getHotelByUser } from "../service/hotelService";
 import { getProfileInfo } from "../service/userService";
-import {
-  removeUser
-} from "../slice/userSlice";
+import { clearUserSession } from "../slice/userSlice";
 import NavLinks from "./NavLinks";
 import Sidebar from "./Sidebar";
 import Button from "./ui/Button";
@@ -36,23 +22,18 @@ import Text from "./ui/Text";
 const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const user = useSelector(
-    (state: any) => state.user.token
-  );
+  const user = useSelector((state: any) => state.user.token);
   const { colorScheme } = useThemeContext();
   // const [user, setUser] = useState(false);
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false);
-  const [modalOpen, setModalOpen] =
-    useState(false);
-  const [hotelData, setHotelData] =
-    useState<any>();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [hotelData, setHotelData] = useState<any>();
   const [profile, setProfile] = useState<any>();
 
   const { logoUrl, setLogoUrl } = useHotel();
 
   const handleLogout = () => {
-    dispatch(removeUser());
+    dispatch(clearUserSession());
     setModalOpen(false);
     navigate("/");
   };
@@ -81,7 +62,6 @@ const Header = () => {
         console.error("Error fetching hotel:", error);
       }
     };
-    
 
     fetchHotelByUser(profile?.id);
   }, [profile?.id]);
@@ -99,11 +79,7 @@ const Header = () => {
 
         <Link to="/">
           <img
-            src={
-              colorScheme === "dark"
-                ? "/logo-light.png"
-                : "/logo.png"
-            }
+            src={colorScheme === "dark" ? "/logo-light.png" : "/logo.png"}
             alt="Logo"
             width={200}
           />
@@ -132,19 +108,13 @@ const Header = () => {
               </Menu.Target>
               <Menu.Dropdown w={150}>
                 <Menu.Item
-                  onClick={() =>
-                    navigate("/hotel-profile")
-                  }
-                  leftSection={
-                    <IconCircleDottedLetterH />
-                  }
+                  onClick={() => navigate("/hotel-profile")}
+                  leftSection={<IconCircleDottedLetterH />}
                 >
                   Profile
                 </Menu.Item>
                 <Menu.Item
-                  onClick={() =>
-                    navigate("/pricing")
-                  }
+                  onClick={() => navigate("/pricing")}
                   leftSection={<IconPlanet />}
                 >
                   Plans
@@ -160,9 +130,7 @@ const Header = () => {
                 <Menu.Divider />
                 <Menu.Item
                   leftSection={<IconLogout />}
-                  onClick={() =>
-                    setModalOpen(true)
-                  }
+                  onClick={() => setModalOpen(true)}
                 >
                   Logout
                 </Menu.Item>
@@ -177,9 +145,7 @@ const Header = () => {
                 <Button radius="xl">Login</Button>
               </Link>
               <Link to="/auth?mode=register">
-                <Button radius="xl">
-                  Register
-                </Button>
+                <Button radius="xl">Register</Button>
               </Link>
             </div>
           )}
@@ -188,9 +154,7 @@ const Header = () => {
         {/* Mobile Menu Icon */}
         <button
           className="md:hidden"
-          onClick={() =>
-            setSidebarOpen(!sidebarOpen)
-          }
+          onClick={() => setSidebarOpen(!sidebarOpen)}
         >
           <IconMenuDeep size={28} />
         </button>
@@ -217,29 +181,15 @@ const Header = () => {
         radius="lg"
         className="w-full h-full bg-black/20"
       >
-        <Card
-          shadow="md"
-          padding="xl"
-          radius="lg"
-          className="text-center"
-        >
-          <Text
-            size="lg"
-            weight="semibold"
-          >
+        <Card shadow="md" padding="xl" radius="lg" className="text-center">
+          <Text size="lg" weight="semibold">
             Are you sure you want to logout?
           </Text>
-          <Text
-            size="sm"
-            className="mt-2 mb-4"
-          >
+          <Text size="sm" className="mt-2 mb-4">
             You will be returned to the homepage.
           </Text>
 
-          <Group
-            grow
-            className="mt-5"
-          >
+          <Group grow className="mt-5">
             <Button
               variant="outline"
               color="gray"
@@ -247,11 +197,7 @@ const Header = () => {
             >
               Cancel
             </Button>
-            <Button
-              color="red"
-              variant="filled"
-              onClick={handleLogout}
-            >
+            <Button color="red" variant="filled" onClick={handleLogout}>
               Logout
             </Button>
           </Group>

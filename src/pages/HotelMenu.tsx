@@ -24,11 +24,7 @@ import {
   IconTrash,
   IconX, // Added for notifications
 } from "@tabler/icons-react";
-import React, {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddItemModal from "../components/hotelMenu/AddItemModal";
 import CreateMenuModal from "../components/hotelMenu/CreateMenuModal";
@@ -41,13 +37,7 @@ import EmptyMenuNotice from "../components/hotelMenu/EmptyMenuNotice";
 import MenuCard from "../components/hotelMenu/MenuCard";
 import MenuHeader from "../components/hotelMenu/MenuHeader";
 import MenuItemsGrid from "../components/hotelMenu/MenuItemsGrid";
-import {
-  Category,
-  Hotel,
-  Menu,
-  MenuCategory,
-  MenuItem
-} from "../interface";
+import { Hotel, Menu, MenuCategory, MenuItem } from "../interface";
 import { getHotelByUser } from "../service/hotelService";
 import {
   addMenuCategory,
@@ -61,12 +51,11 @@ import {
   getMenuItemsByCategory,
   updateCategory,
   updateMenu,
-  updateMenuItemService
+  updateMenuItemService,
 } from "../service/menuService"; // Assuming menuService exports getMenuItems
 import { getProfileInfo } from "../service/userService";
 // Optional: Add notifications for better UX
 // import { notifications } from '@mantine/notifications';
-
 
 const MenuManager: React.FC = () => {
   const navigate = useNavigate();
@@ -82,22 +71,45 @@ const MenuManager: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State for items of the currently selected category tab
-  const [activeCategoryItems, setActiveCategoryItems] = useState<MenuItem[]>([]);
-  const [activeTabCategoryId, setActiveTabCategoryId] = useState<string | null>(null);
+  const [activeCategoryItems, setActiveCategoryItems] = useState<MenuItem[]>(
+    []
+  );
+  const [activeTabCategoryId, setActiveTabCategoryId] = useState<string | null>(
+    null
+  );
 
   // Modal states
-  const [menuModalOpened, { open: openMenuModal, close: closeMenuModal }] = useDisclosure(false);
-  const [deleteModalOpened, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
-  const [deleteCategoryModalOpened, { open: openCategoryDeleteModal, close: closeCategoryDeleteModal }] = useDisclosure(false);
-  const [itemModalOpened, { open: openItemModal, close: closeItemModal }] = useDisclosure(false);
-  const [categoryModalOpened, { open: openCategoryModal, close: closeCategoryModal }] = useDisclosure(false);
-  const [deleteItemModalOpened, { open: openDeleteItemModal, close: closeDeleteItemModal }] = useDisclosure(false);
-  const [editItemModalOpened, { open: openEditItemModal, close: closeEditItemModal }] = useDisclosure(false);
+  const [menuModalOpened, { open: openMenuModal, close: closeMenuModal }] =
+    useDisclosure(false);
+  const [
+    deleteModalOpened,
+    { open: openDeleteModal, close: closeDeleteModal },
+  ] = useDisclosure(false);
+  const [
+    deleteCategoryModalOpened,
+    { open: openCategoryDeleteModal, close: closeCategoryDeleteModal },
+  ] = useDisclosure(false);
+  const [itemModalOpened, { open: openItemModal, close: closeItemModal }] =
+    useDisclosure(false);
+  const [
+    categoryModalOpened,
+    { open: openCategoryModal, close: closeCategoryModal },
+  ] = useDisclosure(false);
+  const [
+    deleteItemModalOpened,
+    { open: openDeleteItemModal, close: closeDeleteItemModal },
+  ] = useDisclosure(false);
+  const [
+    editItemModalOpened,
+    { open: openEditItemModal, close: closeEditItemModal },
+  ] = useDisclosure(false);
 
   // Form states
   const [newMenuName, setNewMenuName] = useState("");
   const [categoryName, setCategoryName] = useState("");
-  const [selectedCategoryIdForItem, setSelectedCategoryIdForItem] = useState<string | null>(null);
+  const [selectedCategoryIdForItem, setSelectedCategoryIdForItem] = useState<
+    string | null
+  >(null);
 
   // New item form states
   const [itemName, setItemName] = useState("");
@@ -108,9 +120,13 @@ const MenuManager: React.FC = () => {
 
   const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
   const [deletingMenu, setDeletingMenu] = useState<Menu | null>(null);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(
+    null
+  );
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<MenuCategory | null>(
+    null
+  );
 
   const [itemToDelete, setItemToDelete] = useState<MenuItem | null>(null);
   const [itemToEdit, setItemToEdit] = useState<MenuItem | null>(null);
@@ -135,7 +151,7 @@ const MenuManager: React.FC = () => {
     setIsInitialLoading(true);
     try {
       const profileData = await getProfileInfo();
-    
+
       if (profileData?.id) {
         const hotelData = await getHotelByUser(profileData.id);
         setHotel(hotelData);
@@ -162,7 +178,9 @@ const MenuManager: React.FC = () => {
           return null;
         }
 
-        const refreshedActiveMenu = data.find((m: Menu) => m.id === prevActiveMenu.id);
+        const refreshedActiveMenu = data.find(
+          (m: Menu) => m.id === prevActiveMenu.id
+        );
 
         if (!refreshedActiveMenu) {
           setCategories([]);
@@ -200,7 +218,10 @@ const MenuManager: React.FC = () => {
         setActiveTabCategoryId(null);
       }
     } catch (error) {
-      console.error(`Error fetching categories for menu ${activeMenu.id}:`, error);
+      console.error(
+        `Error fetching categories for menu ${activeMenu.id}:`,
+        error
+      );
       setCategories([]);
     } finally {
       setIsCategoryLoading(false);
@@ -214,10 +235,16 @@ const MenuManager: React.FC = () => {
     }
     setIsItemLoading(true);
     try {
-      const items = await getMenuItemsByCategory(activeMenu.id, activeTabCategoryId);
+      const items = await getMenuItemsByCategory(
+        activeMenu.id,
+        activeTabCategoryId
+      );
       setActiveCategoryItems(items || []);
     } catch (error) {
-      console.error(`Error fetching items for category ${activeTabCategoryId}:`, error);
+      console.error(
+        `Error fetching items for category ${activeTabCategoryId}:`,
+        error
+      );
       setActiveCategoryItems([]);
     } finally {
       setIsItemLoading(false);
@@ -293,7 +320,7 @@ const MenuManager: React.FC = () => {
     setIsSubmitting(true);
     try {
       const newCategoryPayload = {
-        name: categoryName,
+        categoryName,
         menuId: activeMenu.id,
       };
       await addMenuCategory(newCategoryPayload);
@@ -331,67 +358,73 @@ const MenuManager: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-
-  const handleOpenAddItemModal = (categoryId: string) => {
-    setSelectedCategoryIdForItem(categoryId);
+  const handleOpenAddItemModal = (categoryId: string | number) => {
+    setSelectedCategoryIdForItem(String(categoryId)); // Ensure it's a string
+    console.log("categoryId: ", categoryId);
     setItemName("");
     setItemDescription("");
-    setItemPrice(0);
-    setItemImageFile(null); // Clear previous image file
-    setItemImageUrl(null); // Clear previous image URL
+    setItemPrice(null); // Changed from 0 to null for better validation
+    setItemImageFile(null);
+    setItemImageUrl(null);
     openItemModal();
   };
-
   const handleItemFileChange = (file: File | null) => {
     setItemImageFile(file);
   };
-
   const handleItemSubmit = async () => {
     if (
       !selectedCategoryIdForItem ||
       !activeMenu?.id ||
       !itemName.trim() ||
       itemPrice === null ||
-      itemPrice < 0
+      itemPrice < 0 ||
+      isNaN(itemPrice)
     ) {
       notifications.show({
         title: "Error",
-        message: "Please fill all required fields (Name, Price) and select a category. Price must be a non-negative number.",
+        message:
+          "Please fill all required fields (Name, Price) and select a category. Price must be a valid non-negative number.",
         color: "red",
       });
       return;
     }
-  
+
     setIsSubmitting(true);
-  
+
     try {
-      // 👇 Build JS object first
       const menuItemObj = {
-        name: itemName,
-        description: itemDescription,
-        price: itemPrice,
+        name: itemName.trim(),
+        description: itemDescription.trim(),
+        price: Number(itemPrice), // Ensure it's a number
         menuId: activeMenu.id,
         categoryId: selectedCategoryIdForItem,
       };
-  
-      // 👇 Now convert to FormData and send
+
       const formData = new FormData();
       formData.append("menuItem", JSON.stringify(menuItemObj));
-  
-      if (itemImageFile) {
+
+      // Only append image if it's a new file
+      if (itemImageFile instanceof File) {
         formData.append("image", itemImageFile);
       }
-  
-      await addMenuItem(formData); // Should send multipart/form-data
-  
+
+      console.log("Submitting menu item:", menuItemObj); // Debug log
+      await addMenuItem(formData);
+
+      // Refresh items if we're on the same category tab
       if (selectedCategoryIdForItem === activeTabCategoryId) {
         await fetchItemsForActiveTab();
       }
-  
-      closeItemModal();
+
+      // Reset form and close modal
+      setItemName("");
+      setItemDescription("");
+      setItemPrice(null);
+      setSelectedCategoryIdForItem(null);
       setItemImageFile(null);
       setItemImageUrl(null);
-  
+      closeItemModal();
+
       notifications.show({
         title: "Item Added",
         message: "Menu item added successfully.",
@@ -401,14 +434,14 @@ const MenuManager: React.FC = () => {
       console.error("Error adding item:", error);
       notifications.show({
         title: "Error",
-        message: error?.errorMessage || "Failed to add menu item.",
+        message:
+          error?.errorMessage || error?.message || "Failed to add menu item.",
         color: "red",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
 
   const handleOnDelete = async () => {
     try {
@@ -450,10 +483,10 @@ const MenuManager: React.FC = () => {
 
   const handleOnDeleteCategory = async () => {
     try {
-      await deleteCategory(deletingCategory?.id);
+      await deleteCategory(deletingCategory?.categoryId);
       notifications.show({
         title: "Deleted",
-        message: `Category ${deletingCategory?.name} Deleted Successfully`,
+        message: `Category ${deletingCategory?.categoryName} Deleted Successfully`,
         color: "green",
       });
     } catch (error) {
@@ -468,7 +501,7 @@ const MenuManager: React.FC = () => {
     await fetchCategoriesForActiveMenu();
   };
 
-  const handleDeleteCateogry = (category: Category) => {
+  const handleDeleteCateogry = (category: MenuCategory) => {
     setDeletingCategory(category);
     openCategoryDeleteModal();
   };
@@ -477,9 +510,9 @@ const MenuManager: React.FC = () => {
     try {
       const updatedCategory = {
         ...editingCategory,
-        name: newCategoryName,
+        categoryName: newCategoryName,
       };
-      await updateCategory(editingCategory?.id, updatedCategory);
+      await updateCategory(editingCategory?.categoryId, updatedCategory);
       notifications.show({
         title: "Category Updated",
         message: "Category updated successfully.",
@@ -508,9 +541,9 @@ const MenuManager: React.FC = () => {
     setItemName(item.name);
     setItemDescription(item.description || "");
     setItemPrice(item.price);
-    setSelectedCategoryIdForItem(item.categoryId);
-    setItemImageUrl(item.itemImage || null); // Set existing image URL for preview
-    setItemImageFile(null); // Clear any potentially pending new file when opening edit
+    setSelectedCategoryIdForItem(String(item.categoryId)); // Ensure string
+    setItemImageUrl(item.itemImage || null);
+    setItemImageFile(null);
     openEditItemModal();
   };
 
@@ -545,53 +578,56 @@ const MenuManager: React.FC = () => {
       !activeMenu?.id ||
       !itemName.trim() ||
       itemPrice === null ||
-      itemPrice < 0
+      itemPrice < 0 ||
+      isNaN(itemPrice)
     ) {
       notifications.show({
         title: "Error",
         message:
-          "Please fill all required fields (Name, Price) and select a category. Price must be a non-negative number.",
+          "Please fill all required fields (Name, Price) and select a category. Price must be a valid non-negative number.",
         color: "red",
       });
       return;
     }
-  
+
     setIsSubmitting(true);
-  
+
     try {
-      //  Build the updated object
+      // Build the updated object
       const updatedItem = {
-        name: itemName,
-        description: itemDescription,
-        price: itemPrice,
+        name: itemName.trim(),
+        description: itemDescription.trim(),
+        price: Number(itemPrice), // Ensure it's a number
         menuId: activeMenu.id,
         categoryId: selectedCategoryIdForItem,
       };
-  
+
       // Prepare form data for multipart request
       const formData = new FormData();
       formData.append("menuItem", JSON.stringify(updatedItem));
-  
-      //  Attach new image only if changed
-      if (itemImageFile) {
+
+      // Attach new image only if changed
+      if (itemImageFile instanceof File) {
         formData.append("image", itemImageFile);
       }
-  
+
+      console.log("Updating menu item:", itemToEdit.id, updatedItem); // Debug log
+
       // Call update API
       await updateMenuItemService(itemToEdit.id, formData);
-  
-      //  Refetch updated items
-      // if (selectedCategoryIdForItem === activeTabCategoryId) {
-      //   await fetchItemsForActiveTab();
-      // }
-      fetchItemsForActiveTab();
-  
+
+      // Refetch updated items
+      await fetchItemsForActiveTab();
+
       // Reset form and close modal
-      closeEditItemModal();
-      setItemToEdit(null);
+      setItemName("");
+      setItemDescription("");
+      setItemPrice(null);
       setItemImageFile(null);
       setItemImageUrl(null);
-  
+      closeEditItemModal();
+      setItemToEdit(null);
+
       notifications.show({
         title: "Item Updated",
         message: "Menu item updated successfully.",
@@ -601,14 +637,16 @@ const MenuManager: React.FC = () => {
       console.error("Error updating item:", error);
       notifications.show({
         title: "Error",
-        message: error?.errorMessage || "Failed to update menu item.",
+        message:
+          error?.errorMessage ||
+          error?.message ||
+          "Failed to update menu item.",
         color: "red",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
 
   return (
     <Container size="lg" py="xl">
@@ -619,62 +657,61 @@ const MenuManager: React.FC = () => {
           isLoading={isInitialLoading}
           onClick={() => {
             if (hotel?.planId === null) {
-              navigate('/pricing')
+              navigate("/pricing");
             } else {
-              openMenuModal()
+              openMenuModal();
             }
           }}
         />
 
         {/* Loading/Empty States */}
-        <LoadingOverlay visible={isInitialLoading} overlayProps={{ radius: "sm", blur: 2 }} />
+        <LoadingOverlay
+          visible={isInitialLoading}
+          overlayProps={{ radius: "sm", blur: 2 }}
+        />
 
         {!isInitialLoading && !hotelId && (
-          <Alert icon={<IconAlertCircle size="1rem" />} title="Hotel Not Found" color="orange">
-            Could not find an associated hotel.
-            Please ensure your profile is linked.
+          <Alert
+            icon={<IconAlertCircle size="1rem" />}
+            title="Hotel Not Found"
+            color="orange"
+          >
+            Could not find an associated hotel. Please ensure your profile is
+            linked.
           </Alert>
         )}
 
-        {!isInitialLoading &&
-          hotelId &&
-          menus.length === 0 && (
-            <EmptyMenuNotice
-              onClick={() => {
-                if (hotel?.planId === null) {
-                  navigate('/pricing')
-                } else {
-                  openMenuModal()
-                }
-              }}
-            />
-          )}
+        {!isInitialLoading && hotelId && menus.length === 0 && (
+          <EmptyMenuNotice
+            onClick={() => {
+              if (hotel?.planId === null) {
+                navigate("/pricing");
+              } else {
+                openMenuModal();
+              }
+            }}
+          />
+        )}
 
         {/* Menu List */}
-        {!isInitialLoading &&
-          hotelId &&
-          menus.length > 0 && (
-            <Stack gap="md">
-              {menus.map((menu) => (
-                <MenuCard
-                  key={menu.id}
-                  menu={menu}
-                  activeMenu={activeMenu}
-                  setActiveMenu={setActiveMenu}
-                  onPublish={() =>
-                    handlePublish(menu)
-                  }
-                  isSubmitting={isSubmitting}
-                  onDelete={() => {
-                    handleDeleteMenu(menu);
-                  }}
-                  onEdit={() =>
-                    handleEditMenu(menu)
-                  }
-                />
-              ))}
-            </Stack>
-          )}
+        {!isInitialLoading && hotelId && menus.length > 0 && (
+          <Stack gap="md">
+            {menus.map((menu) => (
+              <MenuCard
+                key={menu.id}
+                menu={menu}
+                activeMenu={activeMenu}
+                setActiveMenu={setActiveMenu}
+                onPublish={() => handlePublish(menu)}
+                isSubmitting={isSubmitting}
+                onDelete={() => {
+                  handleDeleteMenu(menu);
+                }}
+                onEdit={() => handleEditMenu(menu)}
+              />
+            ))}
+          </Stack>
+        )}
 
         {/* --- Active Menu Management Section --- */}
         {activeMenu && (
@@ -692,15 +729,10 @@ const MenuManager: React.FC = () => {
                 color="red"
                 radius="xl"
                 size="lg"
-                onClick={() =>
-                  setActiveMenu(null)
-                }
+                onClick={() => setActiveMenu(null)}
                 className="transition-all hover:scale-110"
               >
-                <Tooltip
-                  label="Close"
-                  withArrow
-                >
+                <Tooltip label="Close" withArrow>
                   <IconX size={20} />
                 </Tooltip>
               </ActionIcon>
@@ -714,43 +746,25 @@ const MenuManager: React.FC = () => {
               }}
             />
             <Stack gap="lg">
-              <Title order={3}>
-                Manage: {activeMenu.title}
-              </Title>
+              <Title order={3}>Manage: {activeMenu.title}</Title>
 
               {/* Add Category Form */}
-              <Paper
-                withBorder
-                p="md"
-                radius="sm"
-              >
+              <Paper withBorder p="md" radius="sm">
                 <Group align="flex-end">
                   <TextInput
                     label="New Category Name"
                     placeholder="e.g., Appetizers, Main Course"
                     value={categoryName}
-                    onChange={(e) =>
-                      setCategoryName(
-                        e.currentTarget.value
-                      )
-                    }
+                    onChange={(e) => setCategoryName(e.currentTarget.value)}
                     style={{ flexGrow: 1 }}
-                    disabled={
-                      isSubmitting ||
-                      isCategoryLoading
-                    }
+                    disabled={isSubmitting || isCategoryLoading}
                   />
                   <Button
                     onClick={handleAddCategory}
                     disabled={
-                      !categoryName.trim() ||
-                      isSubmitting ||
-                      isCategoryLoading
+                      !categoryName.trim() || isSubmitting || isCategoryLoading
                     }
-                    loading={
-                      isSubmitting &&
-                      categoryName.trim() !== ""
-                    }
+                    loading={isSubmitting && categoryName.trim() !== ""}
                   >
                     Add Category
                   </Button>
@@ -760,94 +774,64 @@ const MenuManager: React.FC = () => {
               {/* Categories and Items Tabs */}
               <Box mt="lg">
                 {isCategoryLoading ? (
-                  <Group
-                    justify="center"
-                    p="lg"
-                  >
+                  <Group justify="center" p="lg">
                     <Loader size="sm" />
-                    <Text>
-                      Loading categories...
-                    </Text>
+                    <Text>Loading categories...</Text>
                   </Group>
                 ) : categories.length === 0 ? (
-                  <Text
-                    c="dimmed"
-                    ta="center"
-                    mt="md"
-                  >
-                    No categories added yet for "
-                    {activeMenu.title}". Use the
+                  <Text c="dimmed" ta="center" mt="md">
+                    No categories added yet for "{activeMenu.title}". Use the
                     form above.
                   </Text>
                 ) : (
                   <Tabs
                     value={activeTabCategoryId}
-                    onChange={
-                      setActiveTabCategoryId
-                    }
+                    onChange={setActiveTabCategoryId}
                     keepMounted={false}
                   >
                     <Tabs.List>
                       {categories.map((cat) => (
                         <Tabs.Tab
-                          key={cat.id}
-                          value={String(cat.id)}
+                          key={cat.categoryId}
+                          value={String(cat.categoryId)}
                         >
-                          {cat.name}
+                          {cat.categoryName}
                         </Tabs.Tab>
                       ))}
                     </Tabs.List>
 
                     {categories.map((cat) => (
                       <Tabs.Panel
-                        key={cat.id}
-                        value={String(cat.id)}
+                        key={cat.categoryId}
+                        value={String(cat.categoryId)}
                         pt="lg"
                       >
                         <Stack gap="md">
-                          <Group
-                            justify="flex-end"
-                            className="w-full"
-                          >
+                          <Group justify="flex-end" className="w-full">
                             <div className="flex gap-5">
                               <Button
-                                leftSection={
-                                  <IconPlus
-                                    size={16}
-                                  />
-                                }
+                                leftSection={<IconPlus size={16} />}
                                 size="xs"
                                 variant="light"
                                 onClick={() =>
-                                  handleOpenAddItemModal(
-                                    String(cat.id)
-                                  )
-                                }
+                                  handleOpenAddItemModal(cat.categoryId)
+                                } // ← Use categoryId
                                 className="w-full sm:w-auto"
                               >
                                 <span className="hidden sm:inline">
-                                  Add Item to{" "}
-                                  {cat.name}
+                                  Add Item to {cat.categoryName}
                                 </span>
                               </Button>
 
                               <Button
                                 size="xs"
                                 variant="light"
-                                leftSection={
-                                  <IconPencil
-                                    size={16}
-                                  />
-                                }
-                                onClick={() =>
-                                  handleEditCategory(
-                                    cat
-                                  )
-                                }
+                                leftSection={<IconPencil size={16} />}
+                                onClick={() => handleEditCategory(cat)}
                                 className="w-full sm:w-auto"
                               >
                                 <span className="hidden sm:inline">
-                                  Edit {cat.name}
+                                  Edit {cat.categoryName}
                                 </span>
                               </Button>
 
@@ -855,40 +839,22 @@ const MenuManager: React.FC = () => {
                                 size="xs"
                                 variant="filled"
                                 color="red"
-                                leftSection={
-                                  <IconTrash
-                                    size={16}
-                                  />
-                                }
-                                onClick={() =>
-                                  handleDeleteCateogry(
-                                    cat
-                                  )
-                                }
+                                leftSection={<IconTrash size={16} />}
+                                onClick={() => handleDeleteCateogry(cat)}
                                 className="w-full sm:w-auto"
                               >
                                 <span className="hidden sm:inline">
-                                  Delete{" "}
-                                  {cat.name}
+                                  Delete {cat.categoryName}
                                 </span>
                               </Button>
                             </div>
                           </Group>
 
                           <MenuItemsGrid
-                            items={
-                              activeCategoryItems ||
-                              []
-                            }
-                            isLoading={
-                              isItemLoading
-                            }
-                            onDelete={
-                              handleDeleteMenuItem
-                            }
-                            onEdit={
-                              handleEditMenuItem
-                            }
+                            items={activeCategoryItems || []}
+                            isLoading={isItemLoading}
+                            onDelete={handleDeleteMenuItem}
+                            onEdit={handleEditMenuItem}
                           />
                         </Stack>
                       </Tabs.Panel>
