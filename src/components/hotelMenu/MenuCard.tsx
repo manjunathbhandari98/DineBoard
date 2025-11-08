@@ -1,16 +1,5 @@
-import {
-  Badge,
-  Button,
-  Card,
-  Group,
-  Stack,
-  Text,
-} from "@mantine/core";
-import {
-  IconToolsKitchen2,
-  IconPencil,
-  IconTrash,
-} from "@tabler/icons-react";
+import { Badge, Button, Card, Group, Stack, Text } from "@mantine/core";
+import { IconPencil, IconToolsKitchen2, IconTrash } from "@tabler/icons-react";
 import { Menu } from "../../interface"; // Replace with your actual types
 
 interface Props {
@@ -32,62 +21,35 @@ const MenuCard = ({
   onEdit,
   onDelete,
 }: Props) => (
-  <Card
-    shadow="sm"
-    padding="lg"
-    radius="md"
-    withBorder
-  >
+  <Card shadow="sm" padding="lg" radius="md" withBorder>
     <Group justify="space-between">
       <Stack gap={0}>
-        <Text
-          fw={600}
-          size="lg"
-        >
+        <Text fw={600} size="lg">
           {menu.title}
         </Text>
-        <Text
-          size="xs"
-          c="dimmed"
-        >
+        <Text size="xs" c="dimmed">
           ID: {menu.id}
         </Text>
       </Stack>
       <Group>
-        <Badge
-          color={
-            menu.isPublished ? "teal" : "yellow"
-          }
-          variant="light"
-        >
-          {menu.isPublished
-            ? "Published"
-            : "Draft"}
+        <Badge color={menu.published ? "teal" : "yellow"} variant="light">
+          {menu.published ? "Published" : "Draft"}
         </Badge>
         <Button
           size="sm"
-          variant={
-            activeMenu?.id === menu.id
-              ? "light"
-              : "subtle"
-          }
+          variant={activeMenu?.id === menu.id ? "light" : "subtle"}
           onClick={() => setActiveMenu(menu)}
-          leftSection={
-            <IconToolsKitchen2 size={16} />
-          }
+          leftSection={<IconToolsKitchen2 size={16} />}
         >
           Manage
         </Button>
-        {!menu.isPublished ? (
+        {!menu.published ? (
           <Button
             size="sm"
             color="green"
             onClick={onPublish} // Calling the onPublish function
             disabled={isSubmitting}
-            loading={
-              isSubmitting &&
-              activeMenu?.id === menu.id
-            }
+            loading={isSubmitting && activeMenu?.id === menu.id}
           >
             Publish
           </Button>
@@ -103,16 +65,8 @@ const MenuCard = ({
             Preview
           </Button>
         )}
-        <IconPencil
-          color="blue"
-          className="cursor-pointer"
-          onClick={onEdit}
-        />
-        <IconTrash
-          color="red"
-          className="cursor-pointer"
-          onClick={onDelete}
-        />
+        <IconPencil color="blue" className="cursor-pointer" onClick={onEdit} />
+        <IconTrash color="red" className="cursor-pointer" onClick={onDelete} />
       </Group>
     </Group>
   </Card>

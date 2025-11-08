@@ -17,8 +17,8 @@ export interface MenuCategory {
 export interface Menu {
   id: string; // Or number
   title: string;
-  isPublished: boolean;
-  hotelId: string; // Or number
+  published: boolean;
+  hotel:Hotel
 }
 
 export interface Profile {
@@ -34,8 +34,12 @@ export interface Hotel {
 
 
 export interface Plan {
-  id: any;
+  planId: string;
   name: string;
   description: string;
-  price: any;
+  price: number;
+  allowsWhiteLabeling:boolean;
+  highlighted:boolean;
+  allowedMenus:number;
+  features:string[]
 }

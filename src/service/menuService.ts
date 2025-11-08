@@ -31,12 +31,7 @@ export const createMenu = async (menu: any) => {
 
 export const getMenu = async (hotelId: any) => {
   try {
-    const response = await axios.get(`${BASE_URL}/menus/hotel/${hotelId}`, {
-      headers: {
-        Authorization: `Bearer ${getToken("authToken")}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.get(`${BASE_URL}/menus/hotel/${hotelId}`);
     return response.data;
   } catch (e) {
     if (axios.isAxiosError(e)) {
@@ -54,12 +49,7 @@ export const getMenu = async (hotelId: any) => {
 
 export const getMenuById = async (id: any) => {
   try {
-    const response = await axios.get(`${BASE_URL}/menus/${id}`, {
-      headers: {
-        Authorization: `Bearer ${getToken("authToken")}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.get(`${BASE_URL}/menus/${id}`);
     return response.data;
   } catch (e) {
     if (axios.isAxiosError(e)) {
@@ -150,12 +140,7 @@ export const addMenuCategory = async (categoryData: any) => {
 export const getCategoryByMenu = async (menuId: any) => {
   try {
     const response = await axios.get(
-      `${BASE_URL}/category/categories/${menuId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${getToken("authToken")}`,
-        },
-      }
+      `${BASE_URL}/category/categories/${menuId}`
     );
     return response.data;
   } catch (e) {
@@ -240,12 +225,8 @@ export const addMenuItem = async (menuItemData: any) => {
 
 export const getMenuItems = async (menuId: any) => {
   try {
-    const response = await axios.get(`${BASE_URL}/menu-items/menu/${menuId}`, {
-      headers: {
-        Authorization: `Bearer ${getToken("authToken")}`,
-      },
-    });
-    return response.data;
+    const response = await axios.get(`${BASE_URL}/menu-items/menu/${menuId}`);
+    return response.data;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
   } catch (error) {
     console.error("Error fetching menu items:", error);
     throw {
@@ -257,12 +238,7 @@ export const getMenuItems = async (menuId: any) => {
 export const getMenuItemsByCategory = async (menuId: any, categoryId: any) => {
   try {
     const response = await axios.get(
-      `${BASE_URL}/menu-items/menu/${menuId}/category/${categoryId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${getToken("authToken")}`,
-        },
-      }
+      `${BASE_URL}/menu-items/menu/${menuId}/category/${categoryId}`
     );
     return response.data;
   } catch (error) {

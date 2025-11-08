@@ -1,113 +1,70 @@
 /* eslint-disable react-refresh/only-export-components */
 // ThemeProvider.tsx
-import {
-  ColorSchemeScript,
-  createTheme,
-  MantineProvider,
-} from "@mantine/core";
+import { ColorSchemeScript, createTheme, MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { getHotelByUser } from "../service/hotelService";
 import { getSettings } from "../service/settingService";
 import { getProfileInfo } from "../service/userService";
 // Define the context type
 type ThemeContextType = {
   colorScheme: "light" | "dark";
-  toggleColorScheme: (
-    value?: "light" | "dark"
-  ) => void;
+  toggleColorScheme: (value?: "light" | "dark") => void;
 };
 // Create the context
-const ThemeContext = createContext<
-  ThemeContextType | undefined
->(undefined);
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 // Export a hook to use the context
 export const useThemeContext = () => {
   const ctx = useContext(ThemeContext);
   if (!ctx)
-    throw new Error(
-      "useThemeContext must be used within ThemeProvider"
-    );
+    throw new Error("useThemeContext must be used within ThemeProvider");
   return ctx;
 };
 
-const ThemeProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  const [colorScheme, setColorScheme] = useState<
-    "light" | "dark"
-  >("light");
+const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  const [colorScheme, setColorScheme] = useState<"light" | "dark">("light");
 
-  const toggleColorScheme = (
-    value?: "light" | "dark"
-  ) =>
-    setColorScheme(
-      value ||
-        (colorScheme === "light"
-          ? "dark"
-          : "light")
-    );
-
+  const toggleColorScheme = (value?: "light" | "dark") =>
+    setColorScheme(value || (colorScheme === "light" ? "dark" : "light"));
+  const location = useLocation();
   const [hotel, setHotel] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
 
-  // 1. Fetch user
+  // detect if current route is customer menu
+  const isCustomerMenu = location.pathname.startsWith("/customer-menu");
+
   useEffect(() => {
+    if (isCustomerMenu) return;
     const fetchUser = async () => {
       const userData = await getProfileInfo();
       setUser(userData);
     };
     fetchUser();
-  }, []);
+  }, [isCustomerMenu]);
 
-  // 2. Fetch hotel after user is loaded
   useEffect(() => {
-    if (!user?.id) return;
+    if (isCustomerMenu || !user?.id) return;
     const fetchHotel = async () => {
-      const hotelData = await getHotelByUser(
-        user.id
-      );
+      const hotelData = await getHotelByUser(user.id);
       setHotel(hotelData);
     };
     fetchHotel();
-  }, [user?.id]);
+  }, [isCustomerMenu, user?.id]);
 
-  // 👇 Automatically fetch settings and apply theme
   useEffect(() => {
-    const fetchSettingsAndApplyTheme =
-      async () => {
-        try {
-          // or however you store hotel/user id
-
-          if (!hotel?.id) return;
-
-          const settings = await getSettings(
-            hotel?.id
-          );
-
-          if (settings.darkModeEnabled) {
-            setColorScheme("dark");
-          } else {
-            setColorScheme("light");
-          }
-        } catch (error) {
-          console.error(
-            "Error fetching settings for theme:",
-            error
-          );
-        }
-      };
-
+    if (isCustomerMenu || !hotel?.id) return;
+    const fetchSettingsAndApplyTheme = async () => {
+      try {
+        const settings = await getSettings(hotel.id);
+        setColorScheme(settings.darkModeEnabled ? "dark" : "light");
+      } catch (error) {
+        console.error("Error fetching settings for theme:", error);
+      }
+    };
     fetchSettingsAndApplyTheme();
-  }, [hotel?.id]); // Run only once on app load
+  }, [isCustomerMenu, hotel?.id]);
 
   const customTheme = createTheme({
     primaryColor: "redTheme",
@@ -137,14 +94,9 @@ const ThemeProvider = ({
   });
 
   return (
-    <ThemeContext.Provider
-      value={{ colorScheme, toggleColorScheme }}
-    >
+    <ThemeContext.Provider value={{ colorScheme, toggleColorScheme }}>
       <ColorSchemeScript defaultColorScheme="light" />
-      <MantineProvider
-        theme={customTheme}
-        forceColorScheme={colorScheme}
-      >
+      <MantineProvider theme={customTheme} forceColorScheme={colorScheme}>
         <Notifications />
         {children}
       </MantineProvider>

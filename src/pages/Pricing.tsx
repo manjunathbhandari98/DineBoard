@@ -1,6 +1,7 @@
 import { Card } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useThemeContext } from "../app/ThemeProvider";
+import { Plan } from "../interface";
 import { getHotelByUser, subscribePlan } from "../service/hotelService";
 import { createOrder } from "../service/paymentService";
 import { getAllPlans } from "../service/pricingService";
@@ -9,7 +10,7 @@ import { getProfileInfo } from "../service/userService";
 const Pricing = () => {
   const { colorScheme } = useThemeContext();
 
-  const [plans, setPlans] = useState([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [user, setUser] = useState<any>(null);
   const [hotel, setHotel] = useState<any>(null);
   const [hotelId, setHotelId] = useState<string | null>(null);
@@ -91,17 +92,14 @@ const Pricing = () => {
   
         handler: async function () {
           try {
-            // 👉 (Optional) Verify payment here using verifyOrder() if implemented
-            await subscribePlan(hotelId, planId); // Update hotel’s subscribed plan
-  
-            // ✅ Refetch updated hotel info to reflect subscribed plan
+            await subscribePlan(hotelId, planId); 
             const updatedHotel = await getHotelByUser(user.id);
             setHotel(updatedHotel);
   
-            alert("✅ Payment Successful and Plan Subscribed!");
+            alert(" Payment Successful and Plan Subscribed!");
           } catch (err) {
             console.error("Subscription Error:", err);
-            alert("❌ Payment verification or subscription failed");
+            alert("Payment verification or subscription failed");
           }
         },
   
@@ -141,7 +139,7 @@ const Pricing = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
         {plans.map((plan: any) => (
           <Card
-            key={plan.id}
+            key={plan.planId}
             shadow="md"
             padding="xl"
             radius="lg"
@@ -190,7 +188,7 @@ const Pricing = () => {
                 )}
               </ul>
 
-              {hotel?.planId === plan.id ? (
+              {hotel?.planId === plan.planId ? (
   <button
     disabled
     className="w-full py-3 rounded-xl font-semibold bg-green-500 text-white cursor-not-allowed opacity-80 flex items-center justify-center"
@@ -199,7 +197,7 @@ const Pricing = () => {
   </button>
 ) : (
   <button
-    onClick={() => handlePayment(plan.id, plan.price, plan.name)}
+    onClick={() => handlePayment(plan.planId, plan.price, plan.name)}
     className={`w-full py-3 rounded-xl font-semibold transition-al cursor-pointer duration-200 ${
       plan.highlighted
         ? "bg-[#f43f5e] text-white hover:bg-[#e11d48]"

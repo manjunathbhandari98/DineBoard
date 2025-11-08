@@ -11,10 +11,7 @@ import {
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { IconSearch } from "@tabler/icons-react";
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getHotelById } from "../../service/hotelService";
 import {
@@ -29,18 +26,14 @@ const HotelMenuPreview = () => {
   const { id } = useParams();
   const [search, setSearch] = useState("");
   const [menus, setMenus] = useState<any>(null);
-  const [allMenuItems, setAllMenuItems] =
-    useState<any[]>([]);
-  const [categories, setCategories] = useState<
-    { id: string; name: string }[]
-  >([]);
-  const [categoryId, setCategoryId] =
-    useState<string>("all");
+  const [allMenuItems, setAllMenuItems] = useState<any[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
+    []
+  );
+  const [categoryId, setCategoryId] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [hotel, setHotel] = useState<any>("");
-  const isMobile = useMediaQuery(
-    "(max-width: 768px)"
-  ); // Define mobile breakpoint
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   useEffect(() => {
     if (!id) return;
@@ -50,10 +43,7 @@ const HotelMenuPreview = () => {
         const response = await getMenuById(id);
         setMenus(response);
       } catch (err) {
-        console.error(
-          "Failed to fetch menu:",
-          err
-        );
+        console.error("Failed to fetch menu:", err);
       }
     };
 
@@ -63,10 +53,7 @@ const HotelMenuPreview = () => {
         const response = await getMenuItems(id);
         setAllMenuItems(response);
       } catch (err) {
-        console.error(
-          "Failed to fetch menu items:",
-          err
-        );
+        console.error("Failed to fetch menu items:", err);
       } finally {
         setLoading(false);
       }
@@ -74,41 +61,30 @@ const HotelMenuPreview = () => {
 
     const fetchCategories = async () => {
       try {
-        const response = await getCategoryByMenu(
-          id
-        );
+        const response = await getCategoryByMenu(id);
         const allOption = {
           id: "all",
           name: "All",
         };
         setCategories([allOption, ...response]);
       } catch (err) {
-        console.error(
-          "Failed to fetch categories:",
-          err
-        );
+        console.error("Failed to fetch categories:", err);
       }
     };
-
     fetchMenu();
     fetchAllMenuItems();
     fetchCategories();
   }, [id]);
 
   useEffect(() => {
-    if (!menus?.hotelId) return;
+    if (!menus?.hotel.id) return;
 
     const fetchHotel = async () => {
       try {
-        const response = await getHotelById(
-          menus.hotelId
-        );
+        const response = await getHotelById(menus.hotel.id);
         setHotel(response);
       } catch (err) {
-        console.error(
-          "Failed to fetch hotel:",
-          err
-        );
+        console.error("Failed to fetch hotel:", err);
       }
     };
 
@@ -116,16 +92,8 @@ const HotelMenuPreview = () => {
   }, [menus]);
 
   const filteredMenu = allMenuItems
-    .filter(
-      (item) =>
-        categoryId === "all" ||
-        item.categoryId === categoryId
-    )
-    .filter((item) =>
-      item.name
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    );
+    .filter((item) => categoryId === "all" || item.categoryId === categoryId)
+    .filter((item) => item.name.toLowerCase().includes(search.toLowerCase()));
 
   if (loading) {
     return (
@@ -136,19 +104,16 @@ const HotelMenuPreview = () => {
   }
 
   return (
-    <Container
-      size="md"
-      py={isMobile ? 20 : 40} // Adjust vertical padding for mobile
-    >
+    <Container size="md" py={isMobile ? 20 : 40}>
       <div className="flex flex-col items-center">
         <img
           src={hotel?.logoUrl}
           alt={hotel?.name}
-          className="w-24 h-24 rounded-full mb-4 object-cover shadow-md" // Increased size, added shadow
+          className="w-24 h-24 rounded-full mb-4 object-cover shadow-md"
         />
         <Title
-          order={1} // Changed to h1 for better semantics and larger size on mobile
-          className="text-center mb-6 text-3xl font-bold text-gray-800" // Improved typography
+          order={1}
+          className="text-center mb-6 text-3xl font-bold text-gray-800"
         >
           {hotel?.name || "Our Restaurant"}
         </Title>
@@ -159,27 +124,20 @@ const HotelMenuPreview = () => {
           isMobile
             ? "gap-4"
             : "md:flex-row md:items-center md:justify-between gap-6"
-        } mb-6`} // Responsive layout for search and categories
+        } mb-6`}
       >
         <div className="flex gap-3 items-center w-full">
           <Input
-            leftSection={
-              <IconSearch
-                size={18}
-                className="text-gray-500"
-              />
-            } // Increased icon size
+            leftSection={<IconSearch size={18} className="text-gray-500" />}
             placeholder="Search dishes..."
             value={search}
-            onChange={(e) =>
-              setSearch(e.currentTarget.value)
-            }
-            className="w-full" // Input takes full width on mobile
+            onChange={(e) => setSearch(e.currentTarget.value)}
+            className="w-full"
             style={{
               backgroundColor: "white",
               border: "1px solid #e0e0e0",
               borderRadius: "8px",
-            }} // Added some styling
+            }}
           />
           <LanguageMenu />
         </div>
@@ -187,13 +145,12 @@ const HotelMenuPreview = () => {
         {categories.length > 0 && (
           <div
             className={`overflow-x-auto no-scrollbar w-full ${
-              isMobile
-                ? "flex flex-nowrap"
-                : "md:flex-wrap"
-            }`} // Ensure categories wrap on desktop, scroll on mobile
+              isMobile ? "flex flex-nowrap" : "md:flex-wrap"
+            }`}
           >
             <SegmentedControl
               data={categories.map((cat) => ({
+                key: cat.id,
                 label: cat.name,
                 value: cat.id,
               }))}
@@ -205,17 +162,14 @@ const HotelMenuPreview = () => {
                 backgroundColor: "#f0f0f0",
                 padding: "4px",
                 borderRadius: "8px",
-              }} // Added background to the whole control
+              }}
             >
-              {/* Override styles for individual segments */}
               <div
                 data-value="all"
                 style={{
                   padding: "8px 16px",
                   borderRadius: "6px",
-                  fontSize: isMobile
-                    ? "0.8rem"
-                    : "0.9rem",
+                  fontSize: isMobile ? "0.8rem" : "0.9rem",
                 }}
               >
                 All
@@ -227,9 +181,7 @@ const HotelMenuPreview = () => {
                   style={{
                     padding: "8px 16px",
                     borderRadius: "6px",
-                    fontSize: isMobile
-                      ? "0.8rem"
-                      : "0.9rem",
+                    fontSize: isMobile ? "0.8rem" : "0.9rem",
                   }}
                 >
                   {cat.name}
@@ -242,18 +194,15 @@ const HotelMenuPreview = () => {
 
       <Grid gutter={isMobile ? 16 : "md"}>
         {filteredMenu.map((item) => (
-          <Grid.Col
-            key={item.id}
-            span={{ base: 12, sm: 6, md: 4 }}
-          >
+          <Grid.Col key={item.id} span={{ base: 12, sm: 6, md: 4 }}>
             <Card
-              shadow="md" // Slightly stronger shadow
-              padding={isMobile ? "md" : "lg"} // Adjust padding for mobile
-              radius="lg" // More rounded corners
+              shadow="md"
+              padding={isMobile ? "md" : "lg"}
+              radius="lg"
               withBorder
-              className="h-full flex flex-col transition-transform transform hover:scale-105" // Added hover effect
+              className="h-full flex flex-col transition-transform transform hover:scale-105"
               style={{
-                backgroundColor: "white", // Explicit white background
+                backgroundColor: "white",
                 border: "1px solid #e0e0e0",
               }}
             >
@@ -261,9 +210,9 @@ const HotelMenuPreview = () => {
                 {item.itemImage ? (
                   <Image
                     src={item.itemImage}
-                    height={isMobile ? 150 : 180} // Adjusted image height
+                    height={isMobile ? 150 : 180}
                     alt={item.name}
-                    className="rounded-md object-cover" // Ensure image is rounded
+                    className="rounded-md object-cover"
                   />
                 ) : (
                   <div className="h-[150px] bg-gray-100 flex items-center justify-center text-gray-400 rounded-md">
@@ -271,25 +220,24 @@ const HotelMenuPreview = () => {
                   </div>
                 )}
               </Card.Section>
-
               <div className="mt-4">
                 <Text
-                  size={isMobile ? "md" : "lg"} // Responsive font size
-                  fw={600} // Use semibold
+                  size={isMobile ? "md" : "lg"}
+                  fw={600}
                   className="text-gray-800"
                 >
                   {item.name}
                 </Text>
                 <Text
                   c="dimmed"
-                  size={isMobile ? "sm" : "md"} // Responsive font size
+                  size={isMobile ? "sm" : "md"}
                   className="text-gray-600"
                 >
                   {item.category}
                 </Text>
                 <Text
                   size={isMobile ? "md" : "lg"}
-                  className="mt-2 font-semibold text-orange-500" // Use a vibrant color
+                  className="mt-2 font-semibold text-orange-500"
                 >
                   ₹{item.price}
                 </Text>

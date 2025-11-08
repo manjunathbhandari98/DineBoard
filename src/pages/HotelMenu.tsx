@@ -339,10 +339,11 @@ const MenuManager: React.FC = () => {
     try {
       const updatedData = {
         ...menu,
+        hotelId: menu.hotel.id,
         isPublished: true,
       };
+      console.log("Publishing menu with ID:", menu.id);
       console.log(updatedData);
-
       await updateMenu(menu.id, updatedData);
 
       notifications.show({
@@ -358,6 +359,7 @@ const MenuManager: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleOpenAddItemModal = (categoryId: string | number) => {
     setSelectedCategoryIdForItem(String(categoryId)); // Ensure it's a string
     console.log("categoryId: ", categoryId);

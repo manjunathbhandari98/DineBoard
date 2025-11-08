@@ -15,6 +15,7 @@ export const useHotel = () => useContext(HotelContext);
 
 export const HotelProvider = ({ children }: { children: ReactNode }) => {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  
 
   return (
     <HotelContext.Provider value={{ logoUrl, setLogoUrl }}>
