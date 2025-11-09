@@ -1,4 +1,3 @@
-
 import {
   ActionIcon,
   Button,
@@ -15,19 +14,10 @@ import {
   Title,
   Tooltip,
 } from "@mantine/core";
-import {
-  IconDownload,
-  IconEdit,
-  IconTrash,
-} from "@tabler/icons-react";
+import { IconDownload, IconEdit, IconTrash } from "@tabler/icons-react";
 import { toPng } from "html-to-image";
 import { QRCodeSVG } from "qrcode.react";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getHotelByUser } from "../service/hotelService";
 import { getMenu } from "../service/menuService";
 import {
@@ -48,118 +38,84 @@ interface QRCodeItem {
 }
 
 const QRCodes = () => {
-  const [qrCodes, setQRCodes] = useState<
-    QRCodeItem[]
-  >([]);
-  const [selectedQRCode, setSelectedQRCode] =
-    useState<string | null>(null);
+  const [qrCodes, setQRCodes] = useState<QRCodeItem[]>([]);
+  const [selectedQRCode, setSelectedQRCode] = useState<string | null>(null);
   const [label, setLabel] = useState("");
-  const [showPreview, setShowPreview] =
-    useState(false);
-  const [isLoading, setIsLoading] =
-    useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
-  const [hotelId, setHotelId] = useState<
-    string | undefined
-  >();
+  const [hotelId, setHotelId] = useState<string | undefined>();
   const [hotelName, setHotelName] = useState("");
   const [hotelLogo, setHotelLogo] = useState("");
-  const [menus, setMenus] = useState<
-    { value: string; label: string }[]
-  >([]);
+  const [menus, setMenus] = useState<{ value: string; label: string }[]>([]);
   const [menuMap, setMenuMap] = useState<{
     [key: string]: string;
   }>({});
-  const [hasBorder, setHasBorder] =
-    useState(false);
+  const [hasBorder, setHasBorder] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const [editModalOpen, setEditModalOpen] =
-    useState(false);
-  const [editingQRCode, setEditingQRCode] =
-    useState<QRCodeItem | null>(null);
-  const [editedLabel, setEditedLabel] =
-    useState("");
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingQRCode, setEditingQRCode] = useState<QRCodeItem | null>(null);
+  const [editedLabel, setEditedLabel] = useState("");
 
-  const [deleteModalOpen, setDeleteModalOpen] =
-    useState(false);
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const qrValue = selectedQRCode
     ? `${FRONTEND_URL}/customer-menu/${
         selectedQRCode.startsWith("temp")
           ? selectedQRCode.replace("temp-", "")
-          : qrCodes.find(
-              (qr) => qr.id === selectedQRCode
-            )?.menuId
+          : qrCodes.find((qr) => qr.id === selectedQRCode)?.menuId
       }`
     : "";
 
-  const fetchProfileAndHotel =
-    useCallback(async () => {
-      try {
-        const profile = await getProfileInfo();
-        if (profile?.id) {
-          const hotel = await getHotelByUser(
-            profile.id
-          );
-          setHotelId(hotel.id);
-          setHotelName(hotel.name || "");
-          setHotelLogo(hotel.logoUrl || "");
-        }
-      } catch (error) {
-        console.error(
-          "Error fetching hotel/profile:",
-          error
-        );
-      } finally {
-        setLoading(false);
+  const fetchProfileAndHotel = useCallback(async () => {
+    try {
+      const profile = await getProfileInfo();
+      if (profile?.id) {
+        const hotel = await getHotelByUser(profile.id);
+        setHotelId(hotel.id);
+        setHotelName(hotel.name || "");
+        setHotelLogo(hotel.logoUrl || "");
       }
-    }, []);
+    } catch (error) {
+      console.error("Error fetching hotel/profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const fetchQRCodesAndMenus =
-    useCallback(async () => {
-      if (!hotelId) return;
-      try {
-        const [qrData, allMenus] =
-          await Promise.all([
-            getQRCodes(),
-            getMenu(hotelId),
-          ]);
-        setQRCodes(qrData);
+  const fetchQRCodesAndMenus = useCallback(async () => {
+    if (!hotelId) return;
+    try {
+      const [qrData, allMenus] = await Promise.all([
+        getQRCodes(),
+        getMenu(hotelId),
+      ]);
+      setQRCodes(qrData);
 
-        const usedMenuIds = new Set(
-          qrData.map((qr: any) => qr.menuId)
-        );
-        const menuMapTemp: {
-          [key: string]: string;
-        } = {};
+      const usedMenuIds = new Set(qrData.map((qr: any) => qr.menuId));
+      const menuMapTemp: {
+        [key: string]: string;
+      } = {};
 
-        const availableMenus = allMenus.filter(
-          (menu: any) => {
-            menuMapTemp[menu.id] = menu.title;
-            return !usedMenuIds.has(menu.id);
-          }
-        );
+      const availableMenus = allMenus.filter((menu: any) => {
+        menuMapTemp[menu.id] = menu.title;
+        return !usedMenuIds.has(menu.id);
+      });
 
-        setMenuMap(menuMapTemp);
-        const formattedMenus = availableMenus.map(
-          (menu: any) => ({
-            value: menu.id,
-            label: menu.title,
-          })
-        );
-        setMenus(formattedMenus);
-      } catch (error) {
-        console.error(
-          "Error loading QR codes or menus:",
-          error
-        );
-      } finally {
-        setLoading(false);
-      }
-    }, [hotelId]);
+      setMenuMap(menuMapTemp);
+      const formattedMenus = availableMenus.map((menu: any) => ({
+        value: menu.id,
+        label: menu.title,
+      }));
+      setMenus(formattedMenus);
+    } catch (error) {
+      console.error("Error loading QR codes or menus:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [hotelId]);
 
   useEffect(() => {
     fetchProfileAndHotel();
@@ -173,9 +129,7 @@ const QRCodes = () => {
 
   useEffect(() => {
     const fetchSettings = async () => {
-      const settings = await getSettings(
-        hotelId || ""
-      );
+      const settings = await getSettings(hotelId || "");
       setHasBorder(settings.borderAroundQR);
     };
     fetchSettings();
@@ -188,13 +142,10 @@ const QRCodes = () => {
   const handleDownloadPreview = async () => {
     if (!qrRef.current) return;
     try {
-      const imgDataUrl = await toPng(
-        qrRef.current,
-        {
-          cacheBust: true,
-          pixelRatio: 4,
-        }
-      );
+      const imgDataUrl = await toPng(qrRef.current, {
+        cacheBust: true,
+        pixelRatio: 4,
+      });
 
       const link = document.createElement("a");
       link.href = imgDataUrl;
@@ -204,10 +155,7 @@ const QRCodes = () => {
       )}-${Date.now()}.png`;
       link.click();
     } catch (err) {
-      console.error(
-        "Failed to download QR:",
-        err
-      );
+      console.error("Failed to download QR:", err);
     }
   };
 
@@ -223,19 +171,13 @@ const QRCodes = () => {
       return;
 
     try {
-      const imgDataUrl = await toPng(
-        qrRef.current,
-        {
-          cacheBust: true,
-          pixelRatio: 4,
-        }
-      );
+      const imgDataUrl = await toPng(qrRef.current, {
+        cacheBust: true,
+        pixelRatio: 4,
+      });
 
       await saveQRCode({
-        menuId: selectedQRCode.replace(
-          "temp-",
-          ""
-        ),
+        menuId: selectedQRCode.replace("temp-", ""),
         label,
         url: imgDataUrl,
         hotelId,
@@ -251,9 +193,7 @@ const QRCodes = () => {
     }
   };
 
-  const handleIndividualDownload = async (
-    qrCode: QRCodeItem
-  ) => {
+  const handleIndividualDownload = async (qrCode: QRCodeItem) => {
     if (!qrCode.url) return;
 
     const link = document.createElement("a");
@@ -272,10 +212,7 @@ const QRCodes = () => {
         ...editingQRCode,
         label: editedLabel,
       };
-      await updateQRCodeLabel(
-        editingQRCode.id,
-        updatedData
-      );
+      await updateQRCodeLabel(editingQRCode.id, updatedData);
       setEditModalOpen(false);
       setEditingQRCode(null);
       await fetchQRCodesAndMenus();
@@ -301,10 +238,7 @@ const QRCodes = () => {
 
   if (loading) {
     return (
-      <Container
-        size="sm"
-        py="xl"
-      >
+      <Container size="sm" py="xl">
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader size={32} />
         </div>
@@ -313,29 +247,18 @@ const QRCodes = () => {
   }
 
   return (
-    <Container
-      size="md"
-      py="xl"
-    >
+    <Container size="md" py="xl">
       <div className="text-center mb-8">
-        <Title order={2}>
-          Manage Menu QR Codes
-        </Title>
+        <Title order={2}>Manage Menu QR Codes</Title>
         <Text color="dimmed">
-          View, generate, download and manage QR
-          codes for your menus.
+          View, generate, download and manage QR codes for your menus.
         </Text>
       </div>
 
-      <Flex
-        justify="end"
-        mb="md"
-      >
+      <Flex justify="end" mb="md">
         <Button
           leftSection={<IconDownload size={18} />}
-          onClick={() =>
-            alert("Bulk download not implemented")
-          }
+          onClick={() => alert("Bulk download not implemented")}
         >
           Download All QRs
         </Button>
@@ -343,53 +266,27 @@ const QRCodes = () => {
 
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {qrCodes.map((qr) => (
-          <Card
-            key={qr.id}
-            withBorder
-            radius="md"
-            shadow="sm"
-          >
-            <Flex
-              direction="column"
-              align="center"
-              mb="sm"
-            >
-              <Text
-                size="sm"
-                color="dimmed"
-              >
-                {menuMap[qr.menuId || ""] ||
-                  "Menu"}
+          <Card key={qr.id} withBorder radius="md" shadow="sm">
+            <Flex direction="column" align="center" mb="sm">
+              <Text size="sm" color="dimmed">
+                {menuMap[qr.menuId || ""] || "Menu"}
               </Text>
               <Text fw={600}>{qr.label}</Text>
             </Flex>
             <Card.Section className="flex justify-center mb-2">
               {qr.url ? (
-                <Image
-                  src={qr.url}
-                  alt="QR"
-                  height={120}
-                  fit="contain"
-                />
+                <Image src={qr.url} alt="QR" height={120} fit="contain" />
               ) : (
-                <Text
-                  size="sm"
-                  color="gray"
-                >
+                <Text size="sm" color="gray">
                   No QR available
                 </Text>
               )}
             </Card.Section>
-            <Group
-              justify="center"
-              mt="xs"
-            >
+            <Group justify="center" mt="xs">
               <Tooltip label="Download">
                 <ActionIcon
                   color="teal"
-                  onClick={() =>
-                    handleIndividualDownload(qr)
-                  }
+                  onClick={() => handleIndividualDownload(qr)}
                 >
                   <IconDownload size={18} />
                 </ActionIcon>
@@ -423,17 +320,8 @@ const QRCodes = () => {
       </div>
 
       {menus.length > 0 && (
-        <Card
-          mt="xl"
-          withBorder
-          radius="md"
-          shadow="sm"
-          padding="lg"
-        >
-          <Text
-            fw={600}
-            mb="sm"
-          >
+        <Card mt="xl" withBorder radius="md" shadow="sm" padding="lg">
+          <Text fw={600} mb="sm">
             Generate New QR Code
           </Text>
           <Select
@@ -442,16 +330,11 @@ const QRCodes = () => {
             data={menus}
             value={
               selectedQRCode?.startsWith("temp")
-                ? selectedQRCode.replace(
-                    "temp-",
-                    ""
-                  )
+                ? selectedQRCode.replace("temp-", "")
                 : ""
             }
             onChange={(value) => {
-              setSelectedQRCode(
-                value ? `temp-${value}` : null
-              );
+              setSelectedQRCode(value ? `temp-${value}` : null);
               setLabel("");
               setShowPreview(false);
             }}
@@ -463,11 +346,7 @@ const QRCodes = () => {
                   required
                   placeholder="e.g. Table 3, Garden Area"
                   value={label}
-                  onChange={(e) =>
-                    setLabel(
-                      e.currentTarget.value
-                    )
-                  }
+                  onChange={(e) => setLabel(e.currentTarget.value)}
                 />
               </Input.Wrapper>
               <Button
@@ -483,133 +362,93 @@ const QRCodes = () => {
         </Card>
       )}
 
-      {showPreview &&
-        selectedQRCode?.startsWith("temp") && (
-          <div className="mt-10 flex flex-col items-center justify-center space-y-6">
-            <Text
-              size="sm"
-              color="dimmed"
-            >
-              QR Code Preview for{" "}
-              {
-                menus.find(
-                  (m) =>
-                    m.value ===
-                    selectedQRCode.replace(
-                      "temp-",
-                      ""
-                    )
-                )?.label
-              }
-            </Text>
+      {showPreview && selectedQRCode?.startsWith("temp") && (
+        <div className="mt-10 flex flex-col items-center justify-center space-y-6">
+          <Text size="sm" color="dimmed">
+            QR Code Preview for{" "}
+            {
+              menus.find((m) => m.value === selectedQRCode.replace("temp-", ""))
+                ?.label
+            }
+          </Text>
 
+          <div
+            ref={qrRef}
+            style={{
+              width: 320,
+              background: "linear-gradient(to bottom, #f9fafb, #fff)",
+              padding: 20,
+              borderRadius: 16,
+              border: "1px solid #e5e7eb",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
             <div
-              ref={qrRef}
               style={{
-                width: 320,
-                background:
-                  "linear-gradient(to bottom, #f9fafb, #fff)",
-                padding: 20,
-                borderRadius: 16,
-                border: "1px solid #e5e7eb",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
+                backgroundColor: "#4F46E5",
+                color: "#fff",
+                padding: "10px",
+                width: "100%",
+                textAlign: "center",
+                borderRadius: "12px 12px 0 0",
+                fontWeight: "bold",
               }}
             >
-              <div
-                style={{
-                  backgroundColor: "#4F46E5",
-                  color: "#fff",
-                  padding: "10px",
-                  width: "100%",
-                  textAlign: "center",
-                  borderRadius: "12px 12px 0 0",
-                  fontWeight: "bold",
-                }}
-              >
-                Scan to View Menu
-              </div>
-              <img
-                src={hotelLogo}
-                alt="logo"
-                width={60}
-                height={60}
-                style={{
-                  borderRadius: "50%",
-                  marginTop: 10,
-                }}
-              />
-              <Text
-                fw={600}
-                mt="xs"
-              >
-                {hotelName}
-              </Text>
-              <div
-                className={`bg-white ${
-                  hasBorder &&
-                  "border-2 border-gray-300"
-                }  p-3 mt-3 rounded-md`}
-              >
-                <QRCodeSVG
-                  value={qrValue}
-                  size={160}
-                  level="H"
-                  includeMargin
-                />
-              </div>
-              {label && (
-                <Text
-                  size="xs"
-                  mt="xs"
-                  color="gray"
-                >
-                  {label}
-                </Text>
-              )}
-              <Text
-                size="xs"
-                mt="sm"
-                color="dimmed"
-              >
-                Powered by{" "}
-                <span
-                  style={{
-                    color: "#4F46E5",
-                    fontWeight: 600,
-                  }}
-                >
-                  DineBoard
-                </span>
-              </Text>
+              Scan to View Menu
             </div>
-
-            <Group
-              justify="center"
-              mt="md"
+            <img
+              src={hotelLogo}
+              alt="logo"
+              width={60}
+              height={60}
+              style={{
+                borderRadius: "50%",
+                marginTop: 10,
+              }}
+            />
+            <Text fw={600} mt="xs">
+              {hotelName}
+            </Text>
+            <div
+              className={`bg-white ${
+                hasBorder && "border-2 border-gray-300"
+              }  p-3 mt-3 rounded-md`}
             >
-              <Button
-                leftSection={
-                  <IconDownload size={18} />
-                }
-                onClick={handleDownloadPreview}
+              <QRCodeSVG value={qrValue} size={160} level="H" includeMargin />
+            </div>
+            {label && (
+              <Text size="xs" mt="xs" color="gray">
+                {label}
+              </Text>
+            )}
+            <Text size="xs" mt="sm" color="dimmed">
+              Powered by{" "}
+              <span
+                style={{
+                  color: "#4F46E5",
+                  fontWeight: 600,
+                }}
               >
-                Download QR
-              </Button>
-              <Button
-                color="green"
-                onClick={handleSaveQRCode}
-              >
-                {isLoading ? (
-                  <Loader size="xs" />
-                ) : (
-                  "Save QR Code"
-                )}
-              </Button>
-            </Group>
+                DineBoard
+              </span>
+            </Text>
           </div>
-        )}
+
+          <Group justify="center" mt="md">
+            <Button
+              leftSection={<IconDownload size={18} />}
+              onClick={handleDownloadPreview}
+            >
+              Download QR
+            </Button>
+            <Button color="green" onClick={handleSaveQRCode}>
+              {isLoading ? <Loader size="xs" /> : "Save QR Code"}
+            </Button>
+          </Group>
+        </div>
+      )}
       <Modal
         opened={editModalOpen}
         onClose={() => setEditModalOpen(false)}
@@ -618,16 +457,10 @@ const QRCodes = () => {
       >
         <Input
           value={editedLabel}
-          onChange={(e) =>
-            setEditedLabel(e.currentTarget.value)
-          }
+          onChange={(e) => setEditedLabel(e.currentTarget.value)}
           placeholder="Enter new label"
         />
-        <Button
-          fullWidth
-          mt="md"
-          onClick={handleEditQRCode}
-        >
+        <Button fullWidth mt="md" onClick={handleEditQRCode}>
           Save
         </Button>
       </Modal>
@@ -636,23 +469,15 @@ const QRCodes = () => {
         opened={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         title={
-          <Text
-            fw={600}
-            size="lg"
-            c="red"
-          >
+          <Text fw={600} size="lg" c="red">
             ⚠️ Confirm Menu Deletion
           </Text>
         }
         centered
       >
-        <Text
-          mb="md"
-          c="dimmed"
-          size="sm"
-        >
-          Are you sure you want to delete this
-          QRCode? This action cannot be undone.
+        <Text mb="md" c="dimmed" size="sm">
+          Are you sure you want to delete this QRCode? This action cannot be
+          undone.
         </Text>
 
         <div className="flex gap-4">
@@ -667,9 +492,7 @@ const QRCodes = () => {
           <Button
             fullWidth
             variant="outline"
-            onClick={() =>
-              setDeleteModalOpen(false)
-            }
+            onClick={() => setDeleteModalOpen(false)}
           >
             Cancel
           </Button>

@@ -22,14 +22,15 @@ import Text from "./ui/Text";
 const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const user = useSelector((state: any) => state.user.token);
+
+  const token = useSelector((state: any) => state.user.token);
+  const isAuthenticated = Boolean(token);
+
   const { colorScheme } = useThemeContext();
-  // const [user, setUser] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [hotelData, setHotelData] = useState<any>();
-  const [profile, setProfile] = useState<any>();
-
+  const [hotelData, setHotelData] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const { logoUrl, setLogoUrl } = useHotel();
 
   const handleLogout = () => {
@@ -38,24 +39,33 @@ const Header = () => {
     navigate("/");
   };
 
+  // ✅ Fetch profile only if user is logged in
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchProfile = async () => {
-      const response = await getProfileInfo();
-      setProfile(response);
-    };
-    fetchProfile();
-  }, []);
-
-  useEffect(() => {
-    if (!profile?.id) return; // wait until profile is loaded
-
-    const fetchHotelByUser = async (userId: string) => {
       try {
-        const response = await getHotelByUser(userId);
+        const response = await getProfileInfo();
+        setProfile(response);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [isAuthenticated]);
+
+  // ✅ Fetch hotel only after profile is loaded
+  useEffect(() => {
+    if (!profile?.id || !isAuthenticated) return;
+
+    const fetchHotelByUser = async () => {
+      try {
+        const response = await getHotelByUser(profile.id);
         if (response) {
           setHotelData(response);
           if (response.logoUrl) {
-            setLogoUrl(response.logoUrl); // ✅ update context on page load
+            setLogoUrl(response.logoUrl);
           }
         }
       } catch (error) {
@@ -63,8 +73,8 @@ const Header = () => {
       }
     };
 
-    fetchHotelByUser(profile?.id);
-  }, [profile?.id]);
+    fetchHotelByUser();
+  }, [profile?.id, isAuthenticated, setLogoUrl]);
 
   return (
     <div className="h-full w-full">
@@ -75,8 +85,7 @@ const Header = () => {
             : "bg-white text-black"
         } shadow-md relative z-50`}
       >
-        {/* Logo and Home Link */}
-
+        {/* Logo */}
         <Link to="/">
           <img
             src={colorScheme === "dark" ? "/logo-light.png" : "/logo.png"}
@@ -87,14 +96,14 @@ const Header = () => {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center space-x-8">
-          <NavLinks isLoggedIn={user} />
-          {user && (
+          <NavLinks isLoggedIn={isAuthenticated} />
+          {isAuthenticated ? (
             <Menu withArrow>
               <Menu.Target>
                 {logoUrl ? (
                   <Avatar
                     src={logoUrl}
-                    alt={hotelData.name}
+                    alt={hotelData?.name || "Hotel"}
                     size={45}
                     radius="xl"
                     className="border-2 border-red-500 hover:border-gray-400 transition duration-300 cursor-pointer"
@@ -119,14 +128,6 @@ const Header = () => {
                 >
                   Plans
                 </Menu.Item>
-                {/* <Menu.Item
-                  onClick={() =>
-                    navigate("/settings")
-                  }
-                  leftSection={<IconSettings />}
-                >
-                  Settings
-                </Menu.Item> */}
                 <Menu.Divider />
                 <Menu.Item
                   leftSection={<IconLogout />}
@@ -136,10 +137,7 @@ const Header = () => {
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
-          )}
-
-          {/* Desktop Login/Register */}
-          {!user && (
+          ) : (
             <div className="space-x-4">
               <Link to="/auth?mode=login">
                 <Button radius="xl">Login</Button>
@@ -151,7 +149,7 @@ const Header = () => {
           )}
         </div>
 
-        {/* Mobile Menu Icon */}
+        {/* Mobile Menu */}
         <button
           className="md:hidden"
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -159,15 +157,14 @@ const Header = () => {
           <IconMenuDeep size={28} />
         </button>
 
-        {/* Sidebar for Mobile */}
         <Sidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          isLoggedIn={user}
+          isLoggedIn={isAuthenticated}
         />
       </header>
 
-      {/* Logout Confirmation Modal */}
+      {/* Logout Modal */}
       <Modal
         opened={modalOpen}
         onClose={() => setModalOpen(false)}

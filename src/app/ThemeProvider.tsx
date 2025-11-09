@@ -34,9 +34,11 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
   // detect if current route is customer menu
   const isCustomerMenu = location.pathname.startsWith("/customer-menu");
+  const isLogedOut = location.pathname.startsWith("/");
 
   useEffect(() => {
     if (isCustomerMenu) return;
+    if (isLogedOut) return;
     const fetchUser = async () => {
       const userData = await getProfileInfo();
       setUser(userData);

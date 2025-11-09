@@ -44,8 +44,7 @@ export const getSettings = async (
         headers: {
           Authorization: `Bearer ${getToken(
             "authToken"
-          )}`,
-          "Content-Type": "application/json",
+          )}`
         },
       }
     );
