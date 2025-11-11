@@ -5,7 +5,7 @@ export interface MenuItem {
   price: number;
   itemImage: string | any;
   menuId: string; // Or number
-  categoryId: string; // Or number
+  category: MenuCategory; // Or number
 }
 
 export interface MenuCategory {

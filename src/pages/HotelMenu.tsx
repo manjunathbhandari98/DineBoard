@@ -543,10 +543,11 @@ const MenuManager: React.FC = () => {
     setItemName(item.name);
     setItemDescription(item.description || "");
     setItemPrice(item.price);
-    setSelectedCategoryIdForItem(item.categoryId);
+    setSelectedCategoryIdForItem(item.category.categoryId);
     setItemImageUrl(item.itemImage || null);
     setItemImageFile(null);
     openEditItemModal();
+    console.log("item: ", item);
   };
 
   const handleOnDeleteItem = async (itemId: string | number) => {
@@ -574,6 +575,14 @@ const MenuManager: React.FC = () => {
   };
 
   const handleOnEditItemSubmit = async () => {
+    console.log("DEBUG EDIT ITEM SUBMIT", {
+      itemToEditId: itemToEdit?.id,
+      selectedCategoryIdForItem,
+      activeMenuId: activeMenu?.id,
+      itemName,
+      itemPrice,
+    });
+
     if (
       !itemToEdit?.id ||
       !selectedCategoryIdForItem ||
@@ -612,8 +621,6 @@ const MenuManager: React.FC = () => {
       if (itemImageFile instanceof File) {
         formData.append("image", itemImageFile);
       }
-
-      console.log("Updating menu item:", itemToEdit.id, updatedItem); // Debug log
 
       // Call update API
       await updateMenuItemService(itemToEdit.id, formData);
