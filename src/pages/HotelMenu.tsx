@@ -360,8 +360,8 @@ const MenuManager: React.FC = () => {
     }
   };
 
-  const handleOpenAddItemModal = (categoryId: string | number) => {
-    setSelectedCategoryIdForItem(String(categoryId)); // Ensure it's a string
+  const handleOpenAddItemModal = (categoryId: string) => {
+    setSelectedCategoryIdForItem(categoryId); // Ensure it's a string
     console.log("categoryId: ", categoryId);
     setItemName("");
     setItemDescription("");
@@ -543,7 +543,7 @@ const MenuManager: React.FC = () => {
     setItemName(item.name);
     setItemDescription(item.description || "");
     setItemPrice(item.price);
-    setSelectedCategoryIdForItem(String(item.categoryId)); // Ensure string
+    setSelectedCategoryIdForItem(item.categoryId);
     setItemImageUrl(item.itemImage || null);
     setItemImageFile(null);
     openEditItemModal();
@@ -793,10 +793,7 @@ const MenuManager: React.FC = () => {
                   >
                     <Tabs.List>
                       {categories.map((cat) => (
-                        <Tabs.Tab
-                          key={cat.categoryId}
-                          value={String(cat.categoryId)}
-                        >
+                        <Tabs.Tab key={cat.categoryId} value={cat.categoryId}>
                           {cat.categoryName}
                         </Tabs.Tab>
                       ))}

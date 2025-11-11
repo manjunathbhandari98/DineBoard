@@ -255,14 +255,14 @@ const QRCodes = () => {
         </Text>
       </div>
 
-      <Flex justify="end" mb="md">
+      {/* <Flex justify="end" mb="md">
         <Button
           leftSection={<IconDownload size={18} />}
           onClick={() => alert("Bulk download not implemented")}
         >
           Download All QRs
         </Button>
-      </Flex>
+      </Flex> */}
 
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {qrCodes.map((qr) => (
